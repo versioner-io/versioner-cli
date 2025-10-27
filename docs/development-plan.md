@@ -188,9 +188,9 @@ Benefits: Single config file handles entire release process
 - [x] Security: Warn if API key passed via CLI flag
 - [x] Versioning: `versioner version` command
 - [x] Unit tests for CI detection
-- [ ] Status value validation and normalization warnings (verbose mode)
-- [ ] Integration tests with mock API server
-- [ ] README with usage examples
+- [x] Status value validation and normalization warnings (verbose mode)
+- [ ] Integration tests with mock API server (deferred to Phase 2)
+- [ ] README with usage examples (in progress)
 
 ### Phase 2: Enhanced UX
 - [ ] Config file support (YAML)

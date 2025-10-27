@@ -25,6 +25,13 @@ Versioner takes events such as "build completed" or "deployment started" in via 
 
 This project is the CLI for Versioner. It provides a simple way to submit build and deployment events to the Versioner API from any CI/CD system or deployment tool.
 
+**Current Status**: Phase 1 (MVP) complete! The CLI is functional with core features including:
+- ✅ Track build and deployment events
+- ✅ Auto-detection for 7 CI/CD systems (GitHub Actions, GitLab CI, Jenkins, CircleCI, Bitbucket, Azure DevOps, Travis CI)
+- ✅ Retry logic with exponential backoff
+- ✅ Status value normalization
+- ✅ Environment variable configuration
+
 ## Installation
 
 ### Homebrew (macOS/Linux)
@@ -162,6 +169,34 @@ Both build and deployment events support these statuses:
 - `aborted` - Cancelled or skipped
 
 Aliases like `success`, `in_progress`, `cancelled`, etc. are automatically normalized.
+
+## CI/CD Auto-Detection
+
+The CLI automatically detects your CI/CD environment and extracts relevant metadata. Supported systems:
+
+- **GitHub Actions** - Repository, commit SHA, run ID, actor
+- **GitLab CI** - Project path, commit SHA, pipeline ID, user
+- **Jenkins** - Repository, commit SHA, build number, user (with plugin)
+- **CircleCI** - Repository, commit SHA, build number, workflow ID
+- **Bitbucket Pipelines** - Repository, commit SHA, build number
+- **Azure DevOps** - Repository, commit SHA, build number, user
+- **Travis CI** - Repository, commit SHA, build number
+
+When running in a supported CI/CD system, you can omit many flags:
+
+```bash
+# In GitHub Actions - auto-detects repository, SHA, build number, etc.
+versioner track build --product=api-service --status=completed
+
+# In GitLab CI - auto-detects project, SHA, pipeline info
+versioner track deployment --environment=production --status=success
+```
+
+Use `--verbose` to see which values were auto-detected:
+
+```bash
+versioner track build --product=api --status=completed --verbose
+```
 
 ## Documentation
 
