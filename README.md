@@ -200,10 +200,11 @@ versioner track build --product=api --status=completed --verbose
 
 ## Documentation
 
+- [Development Guide](docs/development-guide.md) - Complete development workflow and reference
 - [Development Plan](docs/development-plan.md) - Implementation roadmap
 - [API Contract](docs/api-contract.md) - Complete API specification
 - [CI/CD Environment Variables](docs/cicd-env-vars.md) - Auto-detection reference
 
 ## Development
 
-See [Development Plan](docs/development-plan.md) for detailed implementation phases and requirements.
+See [Development Guide](docs/development-guide.md) for the complete workflow, from setup to testing to deployment.
