@@ -55,6 +55,7 @@ func init() {
 	deploymentCmd.Flags().String("deployed-by-email", "", "User email")
 	deploymentCmd.Flags().String("deployed-by-name", "", "User display name")
 	deploymentCmd.Flags().String("completed-at", "", "Deployment completion timestamp (ISO 8601 format)")
+	deploymentCmd.Flags().String("extra-metadata", "", "Additional metadata as JSON object (max 100KB)")
 
 	// Bind flags to viper
 	viper.BindPFlag("product", deploymentCmd.Flags().Lookup("product"))
@@ -168,6 +169,15 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 		event.CompletedAt = &completedAt
 	}
 
+	// Parse extra metadata if provided
+	if extraMetadataStr, _ := cmd.Flags().GetString("extra-metadata"); extraMetadataStr != "" {
+		metadata, err := ParseExtraMetadata(extraMetadataStr)
+		if err != nil {
+			return err
+		}
+		event.ExtraMetadata = metadata
+	}
+
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Tracking deployment event:\n")
 		if detected.System != cicd.SystemUnknown {
@@ -205,8 +215,8 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 
 	// Success
 	fmt.Printf("✓ Deployment event tracked successfully\n")
+	fmt.Printf("  Event ID: %s\n", resp.ID)
 	if verbose {
-		fmt.Printf("  Event ID: %s\n", resp.ID)
 		fmt.Printf("  Product ID: %s\n", resp.ProductID)
 		fmt.Printf("  Version ID: %s\n", resp.VersionID)
 		fmt.Printf("  Environment ID: %s\n", resp.EnvironmentID)

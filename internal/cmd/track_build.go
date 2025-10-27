@@ -51,6 +51,7 @@ func init() {
 	buildCmd.Flags().String("built-by-name", "", "User display name")
 	buildCmd.Flags().String("started-at", "", "Build start timestamp (ISO 8601 format)")
 	buildCmd.Flags().String("completed-at", "", "Build completion timestamp (ISO 8601 format)")
+	buildCmd.Flags().String("extra-metadata", "", "Additional metadata as JSON object (max 100KB)")
 
 	// Bind flags to viper
 	viper.BindPFlag("product", buildCmd.Flags().Lookup("product"))
@@ -164,6 +165,15 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 		event.CompletedAt = &completedAt
 	}
 
+	// Parse extra metadata if provided
+	if extraMetadataStr, _ := cmd.Flags().GetString("extra-metadata"); extraMetadataStr != "" {
+		metadata, err := ParseExtraMetadata(extraMetadataStr)
+		if err != nil {
+			return err
+		}
+		event.ExtraMetadata = metadata
+	}
+
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Tracking build event:\n")
 		if detected.System != cicd.SystemUnknown {
@@ -200,8 +210,8 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 
 	// Success
 	fmt.Printf("✓ Build event tracked successfully\n")
+	fmt.Printf("  Event ID: %s\n", resp.ID)
 	if verbose {
-		fmt.Printf("  Event ID: %s\n", resp.ID)
 		fmt.Printf("  Product ID: %s\n", resp.ProductID)
 		fmt.Printf("  Version ID: %s\n", resp.VersionID)
 	}
