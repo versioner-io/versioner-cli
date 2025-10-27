@@ -73,17 +73,23 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 	detected := cicd.Detect()
 
 	// Get required fields (with auto-detection fallback)
-	product := viper.GetString("product")
+	product, _ := cmd.Flags().GetString("product")
+	if product == "" {
+		product = viper.GetString("product")
+	}
 	if product == "" {
 		product = detected.Product
 	}
 
-	version := viper.GetString("version")
+	version, _ := cmd.Flags().GetString("version")
+	if version == "" {
+		version = viper.GetString("version")
+	}
 	if version == "" {
 		version = detected.Version
 	}
 
-	statusValue := viper.GetString("status")
+	statusValue, _ := cmd.Flags().GetString("status")
 
 	// Normalize and validate status
 	canonicalStatus, wasNormalized := status.Normalize(statusValue)
@@ -110,13 +116,18 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 	// Create API client
 	client := api.NewClient(apiURL, apiKey, debug)
 
-	// Helper function to get value with fallback
-	getWithFallback := func(key string, fallback string) string {
-		val := viper.GetString(key)
-		if val == "" {
-			return fallback
+	// Helper function to get value with fallback (cmd flags -> viper -> auto-detected)
+	getWithFallback := func(flagName string, viperKey string, fallback string) string {
+		// Try command flag first
+		if val, _ := cmd.Flags().GetString(flagName); val != "" {
+			return val
 		}
-		return val
+		// Try viper (env vars, config file)
+		if val := viper.GetString(viperKey); val != "" {
+			return val
+		}
+		// Fall back to auto-detected value
+		return fallback
 	}
 
 	// Build the event with auto-detected fallbacks
@@ -124,16 +135,16 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 		ProductName:   product,
 		Version:       version,
 		Status:        statusValue,
-		SourceSystem:  getWithFallback("source_system", string(detected.System)),
-		BuildNumber:   getWithFallback("build_number", detected.BuildNumber),
-		SCMSha:        getWithFallback("scm_sha", detected.SCMSha),
-		SCMBranch:     getWithFallback("scm_branch", detected.SCMBranch),
-		SCMRepository: getWithFallback("scm_repository", detected.SCMRepository),
-		BuildURL:      getWithFallback("build_url", detected.BuildURL),
-		InvokeID:      getWithFallback("invoke_id", detected.InvokeID),
-		BuiltBy:       getWithFallback("built_by", detected.BuiltBy),
-		BuiltByEmail:  getWithFallback("built_by_email", detected.BuiltByEmail),
-		BuiltByName:   getWithFallback("built_by_name", detected.BuiltByName),
+		SourceSystem:  getWithFallback("source-system", "source_system", string(detected.System)),
+		BuildNumber:   getWithFallback("build-number", "build_number", detected.BuildNumber),
+		SCMSha:        getWithFallback("scm-sha", "scm_sha", detected.SCMSha),
+		SCMBranch:     getWithFallback("scm-branch", "scm_branch", detected.SCMBranch),
+		SCMRepository: getWithFallback("scm-repository", "scm_repository", detected.SCMRepository),
+		BuildURL:      getWithFallback("build-url", "build_url", detected.BuildURL),
+		InvokeID:      getWithFallback("invoke-id", "invoke_id", detected.InvokeID),
+		BuiltBy:       getWithFallback("built-by", "built_by", detected.BuiltBy),
+		BuiltByEmail:  getWithFallback("built-by-email", "built_by_email", detected.BuiltByEmail),
+		BuiltByName:   getWithFallback("built-by-name", "built_by_name", detected.BuiltByName),
 	}
 
 	// Parse timestamps if provided

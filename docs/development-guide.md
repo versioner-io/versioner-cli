@@ -14,43 +14,43 @@ This is a **Go CLI application** using the Cobra framework. If you're coming fro
 
 ```
 versioner-cli/
-├── cmd/versioner/          # Application entry point (like main.py)
-│   └── main.go            # Calls the root command and exits
+├── cmd/versioner/              # Application entry point (like main.py)
+│   └── main.go                 # Calls the root command and exits
 │
-├── internal/              # Private application code (cannot be imported by other projects)
-│   ├── api/              # API client for talking to Versioner backend
-│   │   ├── client.go     # HTTP client with retry logic
-│   │   ├── build.go      # Build event types and API calls
-│   │   └── deployment.go # Deployment event types and API calls
+├── internal/                   # Private application code (cannot be imported by other projects)
+│   ├── api/                    # API client for talking to Versioner backend
+│   │   ├── client.go           # HTTP client with retry logic
+│   │   ├── build.go            # Build event types and API calls
+│   │   └── deployment.go       # Deployment event types and API calls
 │   │
-│   ├── cicd/             # CI/CD system auto-detection
-│   │   ├── detector.go      # Detects CI system and extracts metadata
-│   │   └── detector_test.go # Tests for detection logic
+│   ├── cicd/                   # CI/CD system auto-detection
+│   │   ├── detector.go         # Detects CI system and extracts metadata
+│   │   └── detector_test.go    # Tests for detection logic
 │   │
-│   ├── cmd/              # Cobra command definitions
-│   │   ├── root.go           # Root command (versioner)
-│   │   ├── version.go        # Version command
-│   │   ├── track.go          # Track parent command
-│   │   ├── track_build.go    # Track build subcommand
+│   ├── cmd/                    # Cobra command definitions
+│   │   ├── root.go             # Root command (versioner)
+│   │   ├── version.go          # Version command
+│   │   ├── track.go            # Track parent command
+│   │   ├── track_build.go      # Track build subcommand
 │   │   └── track_deployment.go # Track deployment subcommand
 │   │
-│   └── status/           # Status value validation and normalization
-│       ├── validator.go      # Status normalization logic
-│       └── validator_test.go # Tests for status validation
+│   └── status/                 # Status value validation and normalization
+│       ├── validator.go        # Status normalization logic
+│       └── validator_test.go   # Tests for status validation
 │
-├── docs/                 # Documentation
-│   ├── api-contract.md       # API specification
-│   ├── cicd-env-vars.md      # CI/CD environment variable reference
-│   ├── development-plan.md   # Project roadmap
-│   └── development-guide.md  # This file!
+├── docs/                       # Documentation
+│   ├── api-contract.md         # API specification
+│   ├── cicd-env-vars.md        # CI/CD environment variable reference
+│   ├── development-plan.md     # Project roadmap
+│   └── development-guide.md    # This file!
 │
-├── bin/                  # Compiled binaries (gitignored)
-│   └── versioner        # Built executable
+├── bin/                        # Compiled binaries (gitignored)
+│   └── versioner               # Built executable
 │
-├── go.mod               # Go module definition (like requirements.txt)
-├── go.sum               # Dependency lock file (like poetry.lock)
-├── justfile             # Build commands (like Makefile)
-└── README.md            # User-facing documentation
+├── go.mod                      # Go module definition (like requirements.txt)
+├── go.sum                      # Dependency lock file (like poetry.lock)
+├── justfile                    # Build commands (like Makefile)
+└── README.md                   # User-facing documentation
 ```
 
 ## 🔑 Key Files Explained
