@@ -189,8 +189,7 @@ Benefits: Single config file handles entire release process
 - [x] Versioning: `versioner version` command
 - [x] Unit tests for CI detection
 - [x] Status value validation and normalization warnings (verbose mode)
-- [ ] Integration tests with mock API server (deferred to Phase 2)
-- [ ] README with usage examples (in progress)
+- [x] README with usage examples
 
 ### Phase 2: Enhanced UX
 - [ ] Config file support (YAML)
@@ -204,6 +203,7 @@ Benefits: Single config file handles entire release process
 - [ ] JSON output mode (`--output=json`) for parsing
 - [ ] Better error messages with actionable guidance
 - [ ] Additional CI/CD system support (Azure DevOps, Travis CI, Argo CD)
+- [ ] Integration tests against mock or local API server
 
 ### Phase 3: Distribution
 - [ ] GoReleaser configuration
