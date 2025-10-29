@@ -30,3 +30,4 @@ Thumbs.db
 # Config files (may contain secrets)
 .versioner-cli.yaml
 config.yaml
+.windsurfrules

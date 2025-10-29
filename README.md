@@ -200,10 +200,13 @@ versioner track build --product=api --status=completed --verbose
 
 ## Documentation
 
-- [Development Plan](docs/development-plan.md) - Implementation roadmap
-- [API Contract](docs/api-contract.md) - Complete API specification
-- [CI/CD Environment Variables](docs/cicd-env-vars.md) - Auto-detection reference
+For comprehensive documentation, see the [versioner-docs](https://github.com/versioner-io/versioner-docs) repository:
 
-## Contributing
+- **[CLI Integration](https://github.com/versioner-io/versioner-docs/blob/main/features/cli-integration.md)** - Complete feature documentation, roadmap, and integration examples
+- **[API Contracts](https://github.com/versioner-io/versioner-docs/blob/main/architecture/api-contracts.md)** - API design patterns and concepts
+- **[API Reference](https://api.versioner.io/docs)** - Interactive OpenAPI documentation
+- **[Ecosystem Status](https://github.com/versioner-io/versioner-docs/blob/main/status.md)** - Current work across all repositories
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete development workflow, from setup to testing to deployment.
+### Repository-Specific Docs
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development workflow, setup, testing, deployment
