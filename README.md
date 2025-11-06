@@ -29,7 +29,7 @@ This project is the CLI for Versioner. It provides a simple way to submit build 
 
 **Current Status**: Phase 1 (MVP) complete! The CLI is functional with core features including:
 - ✅ Track build and deployment events
-- ✅ Auto-detection for 7 CI/CD systems (GitHub Actions, GitLab CI, Jenkins, CircleCI, Bitbucket, Azure DevOps, Travis CI)
+- ✅ Auto-detection for 8 CI/CD systems (GitHub Actions, GitLab CI, Jenkins, CircleCI, Bitbucket, Azure DevOps, Travis CI, Rundeck)
 - ✅ Retry logic with exponential backoff
 - ✅ Status value normalization
 - ✅ Environment variable configuration
@@ -194,6 +194,7 @@ The CLI automatically detects your CI/CD environment and extracts relevant metad
 - **Bitbucket Pipelines** - Repository, commit SHA, build number
 - **Azure DevOps** - Repository, commit SHA, build number, user
 - **Travis CI** - Repository, commit SHA, build number
+- **Rundeck** - Job name, execution ID, user, project
 
 When running in a supported CI/CD system, you can omit many flags:
 

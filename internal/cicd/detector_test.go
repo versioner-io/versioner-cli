@@ -113,11 +113,74 @@ func TestDetectGitLab(t *testing.T) {
 	}
 }
 
+func TestDetectRundeck(t *testing.T) {
+	// Save and clear environment
+	originalEnv := make(map[string]string)
+	envVars := []string{
+		"RD_JOB_ID", "RD_JOB_EXECID", "RD_JOB_NAME",
+		"RD_JOB_USERNAME", "RD_JOB_USER_NAME", "RD_JOB_PROJECT",
+		"RD_JOB_SERVERURL",
+		"GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL",
+	}
+	for _, key := range envVars {
+		originalEnv[key] = os.Getenv(key)
+		os.Unsetenv(key)
+	}
+	defer func() {
+		for key, val := range originalEnv {
+			if val != "" {
+				os.Setenv(key, val)
+			} else {
+				os.Unsetenv(key)
+			}
+		}
+	}()
+
+	// Set Rundeck environment
+	os.Setenv("RD_JOB_ID", "abc-123-def-456")
+	os.Setenv("RD_JOB_EXECID", "789")
+	os.Setenv("RD_JOB_NAME", "deploy-api-service")
+	os.Setenv("RD_JOB_USERNAME", "testuser")
+	os.Setenv("RD_JOB_PROJECT", "production")
+	os.Setenv("RD_JOB_SERVERURL", "https://rundeck.example.com")
+
+	detected := Detect()
+
+	if detected.System != SystemRundeck {
+		t.Errorf("Expected system %s, got %s", SystemRundeck, detected.System)
+	}
+
+	if detected.Product != "deploy-api-service" {
+		t.Errorf("Expected product deploy-api-service, got %s", detected.Product)
+	}
+
+	if detected.BuildNumber != "789" {
+		t.Errorf("Expected build number 789, got %s", detected.BuildNumber)
+	}
+
+	if detected.InvokeID != "789" {
+		t.Errorf("Expected invoke ID 789, got %s", detected.InvokeID)
+	}
+
+	if detected.BuiltBy != "testuser" {
+		t.Errorf("Expected built by testuser, got %s", detected.BuiltBy)
+	}
+
+	if detected.Version != "789" {
+		t.Errorf("Expected version 789, got %s", detected.Version)
+	}
+
+	expectedURL := "https://rundeck.example.com/project/production/execution/show/789"
+	if detected.BuildURL != expectedURL {
+		t.Errorf("Expected build URL %s, got %s", expectedURL, detected.BuildURL)
+	}
+}
+
 func TestDetectUnknown(t *testing.T) {
 	// Clear all CI environment variables
 	ciEnvVars := []string{
 		"GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL", "CIRCLECI",
-		"BITBUCKET_BUILD_NUMBER", "TF_BUILD", "TRAVIS",
+		"BITBUCKET_BUILD_NUMBER", "TF_BUILD", "TRAVIS", "RD_JOB_ID",
 	}
 	originalEnv := make(map[string]string)
 	for _, key := range ciEnvVars {

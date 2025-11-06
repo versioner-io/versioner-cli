@@ -17,6 +17,7 @@ const (
 	SystemBitbucket System = "bitbucket"
 	SystemAzure     System = "azure-devops"
 	SystemTravis    System = "travis"
+	SystemRundeck   System = "rundeck"
 	SystemUnknown   System = "unknown"
 )
 
@@ -57,6 +58,8 @@ func Detect() *DetectedValues {
 		detectAzure(detected)
 	case SystemTravis:
 		detectTravis(detected)
+	case SystemRundeck:
+		detectRundeck(detected)
 	}
 
 	return detected
@@ -84,6 +87,9 @@ func detectSystem() System {
 	}
 	if os.Getenv("TRAVIS") == "true" {
 		return SystemTravis
+	}
+	if os.Getenv("RD_JOB_ID") != "" {
+		return SystemRundeck
 	}
 	return SystemUnknown
 }
@@ -277,6 +283,34 @@ func detectTravis(d *DetectedValues) {
 	// Use SHA as version fallback
 	if d.Version == "" && d.SCMSha != "" {
 		d.Version = d.SCMSha[:8]
+	}
+}
+
+// detectRundeck extracts values from Rundeck environment
+func detectRundeck(d *DetectedValues) {
+	d.BuildNumber = os.Getenv("RD_JOB_EXECID")
+	d.InvokeID = os.Getenv("RD_JOB_EXECID")
+	d.BuiltBy = os.Getenv("RD_JOB_USERNAME")
+	if d.BuiltBy == "" {
+		d.BuiltBy = os.Getenv("RD_JOB_USER_NAME")
+	}
+
+	// Build URL to execution
+	serverURL := os.Getenv("RD_JOB_SERVERURL")
+	project := os.Getenv("RD_JOB_PROJECT")
+	execID := os.Getenv("RD_JOB_EXECID")
+	if serverURL != "" && project != "" && execID != "" {
+		d.BuildURL = fmt.Sprintf("%s/project/%s/execution/show/%s", serverURL, project, execID)
+	}
+
+	// Use job name as product fallback
+	if d.Product == "" {
+		d.Product = os.Getenv("RD_JOB_NAME")
+	}
+
+	// Use execution ID as version fallback
+	if d.Version == "" && execID != "" {
+		d.Version = execID
 	}
 }
 
