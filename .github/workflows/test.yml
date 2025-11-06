@@ -10,13 +10,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    outputs:
-      commit_sha: ${{ steps.get_sha.outputs.SHORT_SHA }}
     steps:
-      - name: Get short SHA
-        id: get_sha
-        run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -57,7 +51,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: test
     strategy:
       matrix:
         goos: [linux, darwin, windows]
@@ -80,45 +73,3 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
         run: |
           go build -o versioner-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/versioner
-
-  track-build:
-    name: Track Build in Versioner
-    runs-on: ubuntu-latest
-    needs: [test, lint, build]
-    if: success() && github.ref == 'refs/heads/main'
-    steps:
-      - name: Track build success
-        uses: versioner-io/versioner-github-action@main
-        with:
-          api_key: ${{ secrets.VERSIONER_API_KEY }}
-          product_name: versioner-cli
-          version: ${{ needs.test.outputs.commit_sha }}
-          event_type: build
-          status: success
-          metadata: |
-            {
-              "branch": "${{ github.ref_name }}",
-              "workflow": "test",
-              "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }
-
-  track-build-failure:
-    name: Track Build Failure in Versioner
-    runs-on: ubuntu-latest
-    needs: [test, lint, build]
-    if: failure() && github.ref == 'refs/heads/main'
-    steps:
-      - name: Track build failure
-        uses: versioner-io/versioner-github-action@main
-        with:
-          api_key: ${{ secrets.VERSIONER_API_KEY }}
-          product_name: versioner-cli
-          version: ${{ github.sha }}
-          event_type: build
-          status: failed
-          metadata: |
-            {
-              "branch": "${{ github.ref_name }}",
-              "workflow": "test",
-              "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }
