@@ -4,8 +4,8 @@ import "testing"
 
 func TestNormalize(t *testing.T) {
 	tests := []struct {
-		input          string
-		expectedOutput string
+		input           string
+		expectedOutput  string
 		shouldNormalize bool
 	}{
 		// Canonical values (no normalization)

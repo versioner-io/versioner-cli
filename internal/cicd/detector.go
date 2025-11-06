@@ -10,14 +10,14 @@ import (
 type System string
 
 const (
-	SystemGitHub     System = "github"
-	SystemGitLab     System = "gitlab"
-	SystemJenkins    System = "jenkins"
-	SystemCircleCI   System = "circleci"
-	SystemBitbucket  System = "bitbucket"
-	SystemAzure      System = "azure-devops"
-	SystemTravis     System = "travis"
-	SystemUnknown    System = "unknown"
+	SystemGitHub    System = "github"
+	SystemGitLab    System = "gitlab"
+	SystemJenkins   System = "jenkins"
+	SystemCircleCI  System = "circleci"
+	SystemBitbucket System = "bitbucket"
+	SystemAzure     System = "azure-devops"
+	SystemTravis    System = "travis"
+	SystemUnknown   System = "unknown"
 )
 
 // DetectedValues holds auto-detected values from CI/CD environment

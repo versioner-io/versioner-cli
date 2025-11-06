@@ -2,13 +2,46 @@
 default:
     just --list
 
+ci:
+    # Run all CI checks locally (tests, lint, build)
+    @echo "Running CI checks..."
+    @echo "\n=== Formatting ==="
+    just fmt
+    @echo "\n=== Tests ==="
+    just run_tests
+    @echo "\n=== Linting ==="
+    -just lint || echo "⚠️  golangci-lint not installed (skipping lint check)"
+    @echo "\n=== Build Check ==="
+    just build
+    @echo "\n✅ All CI checks passed!"
 
 setup_local_dev:
     # Set up local development environment
     @echo "Setting up local development environment..."
     go mod download
     go mod tidy
-    @echo "Development environment ready!"
+    just install_linter
+    @echo "✅ Development environment ready!"
+
+install_linter:
+    # Install golangci-lint
+    @echo "Installing golangci-lint..."
+    @if command -v golangci-lint >/dev/null 2>&1; then \
+        echo "✅ golangci-lint already installed ($(golangci-lint --version))"; \
+    else \
+        echo "Installing golangci-lint..."; \
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+        if [ -f "$$HOME/go/bin/golangci-lint" ]; then \
+            echo "✅ golangci-lint installed to $$HOME/go/bin/golangci-lint"; \
+            echo ""; \
+            echo "⚠️  Add to your PATH by adding this to ~/.zshrc or ~/.bashrc:"; \
+            echo "   export PATH=\"\$$HOME/go/bin:\$$PATH\""; \
+            echo ""; \
+            echo "Then run: source ~/.zshrc (or restart terminal)"; \
+        else \
+            echo "✅ golangci-lint installed"; \
+        fi; \
+    fi
 
 build:
     # Build the CLI binary

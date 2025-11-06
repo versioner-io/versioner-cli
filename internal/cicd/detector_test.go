@@ -66,12 +66,13 @@ func TestDetectGitHub(t *testing.T) {
 }
 
 func TestDetectGitLab(t *testing.T) {
-	// Save and clear environment
+	// Save and clear environment (including GitHub Actions vars that may be set in CI)
 	originalEnv := make(map[string]string)
 	envVars := []string{
 		"GITLAB_CI", "CI_PROJECT_PATH", "CI_COMMIT_SHA",
 		"CI_COMMIT_REF_NAME", "CI_PIPELINE_ID", "CI_PIPELINE_IID",
 		"CI_PIPELINE_URL", "GITLAB_USER_LOGIN",
+		"GITHUB_ACTIONS", "GITHUB_REPOSITORY", "GITHUB_SHA",
 	}
 	for _, key := range envVars {
 		originalEnv[key] = os.Getenv(key)

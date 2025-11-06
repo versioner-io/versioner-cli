@@ -41,8 +41,8 @@ func init() {
 	rootCmd.PersistentFlags().String("api-key", "", "Versioner API key (prefer VERSIONER_API_KEY env var)")
 
 	// Bind flags to viper
-	viper.BindPFlag("api_url", rootCmd.PersistentFlags().Lookup("api-url"))
-	viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api-key"))
+	_ = viper.BindPFlag("api_url", rootCmd.PersistentFlags().Lookup("api-url"))
+	_ = viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api-key"))
 }
 
 // initConfig reads in config file and ENV variables

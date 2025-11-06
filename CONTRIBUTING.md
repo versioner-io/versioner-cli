@@ -20,10 +20,11 @@ just setup_local_dev
 ### Development Workflow
 
 1. **Make your changes** - Edit files in `internal/` or `cmd/` directories
-2. **Run tests** - `just run_tests`
-3. **Build** - `just build`
-4. **Test locally** - `./bin/versioner track build --product=test --version=1.0.0`
-5. **Commit** - `git commit -m "feat: description"`
+2. **Run CI checks** - `just ci` (runs tests, lint, build - same as GitHub Actions)
+3. **Test locally** - `./bin/versioner track build --product=test --version=1.0.0`
+4. **Commit** - `git commit -m "feat: description"`
+
+**Pro tip:** Always run `just ci` before committing to catch issues early!
 
 ## Repository Structure
 
@@ -73,6 +74,9 @@ versioner-cli/
 ## Common Commands
 
 ```bash
+# Run all CI checks (format, test, lint, build)
+just ci
+
 # Setup/Install dependencies
 just setup_local_dev
 

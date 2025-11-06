@@ -58,19 +58,19 @@ func init() {
 	deploymentCmd.Flags().String("extra-metadata", "", "Additional metadata as JSON object (max 100KB)")
 
 	// Bind flags to viper
-	viper.BindPFlag("product", deploymentCmd.Flags().Lookup("product"))
-	viper.BindPFlag("environment", deploymentCmd.Flags().Lookup("environment"))
-	viper.BindPFlag("version", deploymentCmd.Flags().Lookup("version"))
-	viper.BindPFlag("status", deploymentCmd.Flags().Lookup("status"))
-	viper.BindPFlag("source_system", deploymentCmd.Flags().Lookup("source-system"))
-	viper.BindPFlag("build_number", deploymentCmd.Flags().Lookup("build-number"))
-	viper.BindPFlag("scm_sha", deploymentCmd.Flags().Lookup("scm-sha"))
-	viper.BindPFlag("scm_repository", deploymentCmd.Flags().Lookup("scm-repository"))
-	viper.BindPFlag("build_url", deploymentCmd.Flags().Lookup("build-url"))
-	viper.BindPFlag("invoke_id", deploymentCmd.Flags().Lookup("invoke-id"))
-	viper.BindPFlag("deployed_by", deploymentCmd.Flags().Lookup("deployed-by"))
-	viper.BindPFlag("deployed_by_email", deploymentCmd.Flags().Lookup("deployed-by-email"))
-	viper.BindPFlag("deployed_by_name", deploymentCmd.Flags().Lookup("deployed-by-name"))
+	_ = viper.BindPFlag("product", deploymentCmd.Flags().Lookup("product"))
+	_ = viper.BindPFlag("environment", deploymentCmd.Flags().Lookup("environment"))
+	_ = viper.BindPFlag("version", deploymentCmd.Flags().Lookup("version"))
+	_ = viper.BindPFlag("status", deploymentCmd.Flags().Lookup("status"))
+	_ = viper.BindPFlag("source_system", deploymentCmd.Flags().Lookup("source-system"))
+	_ = viper.BindPFlag("build_number", deploymentCmd.Flags().Lookup("build-number"))
+	_ = viper.BindPFlag("scm_sha", deploymentCmd.Flags().Lookup("scm-sha"))
+	_ = viper.BindPFlag("scm_repository", deploymentCmd.Flags().Lookup("scm-repository"))
+	_ = viper.BindPFlag("build_url", deploymentCmd.Flags().Lookup("build-url"))
+	_ = viper.BindPFlag("invoke_id", deploymentCmd.Flags().Lookup("invoke-id"))
+	_ = viper.BindPFlag("deployed_by", deploymentCmd.Flags().Lookup("deployed-by"))
+	_ = viper.BindPFlag("deployed_by_email", deploymentCmd.Flags().Lookup("deployed-by-email"))
+	_ = viper.BindPFlag("deployed_by_name", deploymentCmd.Flags().Lookup("deployed-by-name"))
 }
 
 func runDeploymentTrack(cmd *cobra.Command, args []string) error {

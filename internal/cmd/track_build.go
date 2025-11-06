@@ -54,19 +54,19 @@ func init() {
 	buildCmd.Flags().String("extra-metadata", "", "Additional metadata as JSON object (max 100KB)")
 
 	// Bind flags to viper
-	viper.BindPFlag("product", buildCmd.Flags().Lookup("product"))
-	viper.BindPFlag("version", buildCmd.Flags().Lookup("version"))
-	viper.BindPFlag("status", buildCmd.Flags().Lookup("status"))
-	viper.BindPFlag("source_system", buildCmd.Flags().Lookup("source-system"))
-	viper.BindPFlag("build_number", buildCmd.Flags().Lookup("build-number"))
-	viper.BindPFlag("scm_sha", buildCmd.Flags().Lookup("scm-sha"))
-	viper.BindPFlag("scm_branch", buildCmd.Flags().Lookup("scm-branch"))
-	viper.BindPFlag("scm_repository", buildCmd.Flags().Lookup("scm-repository"))
-	viper.BindPFlag("build_url", buildCmd.Flags().Lookup("build-url"))
-	viper.BindPFlag("invoke_id", buildCmd.Flags().Lookup("invoke-id"))
-	viper.BindPFlag("built_by", buildCmd.Flags().Lookup("built-by"))
-	viper.BindPFlag("built_by_email", buildCmd.Flags().Lookup("built-by-email"))
-	viper.BindPFlag("built_by_name", buildCmd.Flags().Lookup("built-by-name"))
+	_ = viper.BindPFlag("product", buildCmd.Flags().Lookup("product"))
+	_ = viper.BindPFlag("version", buildCmd.Flags().Lookup("version"))
+	_ = viper.BindPFlag("status", buildCmd.Flags().Lookup("status"))
+	_ = viper.BindPFlag("source_system", buildCmd.Flags().Lookup("source-system"))
+	_ = viper.BindPFlag("build_number", buildCmd.Flags().Lookup("build-number"))
+	_ = viper.BindPFlag("scm_sha", buildCmd.Flags().Lookup("scm-sha"))
+	_ = viper.BindPFlag("scm_branch", buildCmd.Flags().Lookup("scm-branch"))
+	_ = viper.BindPFlag("scm_repository", buildCmd.Flags().Lookup("scm-repository"))
+	_ = viper.BindPFlag("build_url", buildCmd.Flags().Lookup("build-url"))
+	_ = viper.BindPFlag("invoke_id", buildCmd.Flags().Lookup("invoke-id"))
+	_ = viper.BindPFlag("built_by", buildCmd.Flags().Lookup("built-by"))
+	_ = viper.BindPFlag("built_by_email", buildCmd.Flags().Lookup("built-by-email"))
+	_ = viper.BindPFlag("built_by_name", buildCmd.Flags().Lookup("built-by-name"))
 }
 
 func runBuildTrack(cmd *cobra.Command, args []string) error {
