@@ -14,13 +14,6 @@ var (
 	debug   bool
 )
 
-// Version information (set via ldflags during build)
-var (
-	Version   = "dev"
-	GitCommit = "unknown"
-	BuildDate = "unknown"
-)
-
 // rootCmd represents the base command
 var rootCmd = &cobra.Command{
 	Use:   "versioner",

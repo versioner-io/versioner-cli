@@ -1,5 +1,7 @@
 # Versioner CLI
 
+> **Beta Release** - This CLI is currently in beta. We're actively seeking feedback from early users!
+
 ## 📌 What is Versioner?
 
 **Versioner** is a deployment tracking and visibility system designed to help engineering teams:
@@ -34,13 +36,7 @@ This project is the CLI for Versioner. It provides a simple way to submit build 
 
 ## Installation
 
-### Homebrew (macOS/Linux)
-
-```bash
-brew install versioner-io/versioner/versioner
-```
-
-### Direct Download
+### Beta Release - Direct Download
 
 Download pre-built binaries from [GitHub Releases](https://github.com/versioner-io/versioner-cli/releases):
 
@@ -50,19 +46,36 @@ curl -L https://github.com/versioner-io/versioner-cli/releases/latest/download/v
 chmod +x versioner
 sudo mv versioner /usr/local/bin/
 
+# Linux (arm64)
+curl -L https://github.com/versioner-io/versioner-cli/releases/latest/download/versioner-linux-arm64 -o versioner
+chmod +x versioner
+sudo mv versioner /usr/local/bin/
+
 # macOS (Apple Silicon)
 curl -L https://github.com/versioner-io/versioner-cli/releases/latest/download/versioner-darwin-arm64 -o versioner
 chmod +x versioner
 sudo mv versioner /usr/local/bin/
+
+# macOS (Intel)
+curl -L https://github.com/versioner-io/versioner-cli/releases/latest/download/versioner-darwin-amd64 -o versioner
+chmod +x versioner
+sudo mv versioner /usr/local/bin/
+
+# Windows (amd64)
+# Download versioner-windows-amd64.exe from releases and add to PATH
 ```
 
-### Install Script
-
-```bash
-curl -L https://install.versioner.io | sh
-```
+**Coming Soon:**
+- Homebrew tap for easier installation on macOS/Linux
+- Automated install script
 
 ## Quick Start
+
+### Get Your API Key
+
+1. Sign up at [app.versioner.io](https://app.versioner.io)
+2. Navigate to Settings → API Keys
+3. Create a new API key and save it securely
 
 ### Track a Build Event
 
@@ -198,15 +211,24 @@ Use `--verbose` to see which values were auto-detected:
 versioner track build --product=api --status=completed --verbose
 ```
 
+## Feedback & Support
+
+This is a beta release and we'd love your feedback!
+
+- **Issues & Bug Reports:** [GitHub Issues](https://github.com/versioner-io/versioner-cli/issues)
+- **Feature Requests:** [GitHub Discussions](https://github.com/versioner-io/versioner-cli/discussions)
+- **Security Issues:** See [SECURITY.md](SECURITY.md)
+
 ## Documentation
 
-For comprehensive documentation, see the [versioner-docs](https://github.com/versioner-io/versioner-docs) repository:
+For comprehensive documentation:
 
-- **[CLI Integration](https://github.com/versioner-io/versioner-docs/blob/main/features/cli-integration.md)** - Complete feature documentation, roadmap, and integration examples
-- **[API Contracts](https://github.com/versioner-io/versioner-docs/blob/main/architecture/api-contracts.md)** - API design patterns and concepts
 - **[API Reference](https://api.versioner.io/docs)** - Interactive OpenAPI documentation
-- **[Ecosystem Status](https://github.com/versioner-io/versioner-docs/blob/main/status.md)** - Current work across all repositories
+- **[Web Dashboard](https://app.versioner.io)** - View your deployment history
+- **[CLI Integration Guide](https://github.com/versioner-io/versioner-docs/blob/main/features/cli-integration.md)** - Complete feature documentation and roadmap
 
 ### Repository-Specific Docs
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Development workflow, setup, testing, deployment
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development workflow, setup, testing
+- [SECURITY.md](SECURITY.md) - Security policy and vulnerability reporting
+- [LICENSE](LICENSE) - MIT License

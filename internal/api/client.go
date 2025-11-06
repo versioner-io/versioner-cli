@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/versioner-io/versioner-cli/internal/version"
 )
 
 // Client represents the Versioner API client
@@ -26,7 +28,7 @@ func NewClient(baseURL, apiKey string, debug bool) *Client {
 		HTTPClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		UserAgent: fmt.Sprintf("versioner-cli/%s", "dev"), // TODO: Use actual version
+		UserAgent: version.GetUserAgent(),
 		Debug:     debug,
 	}
 }

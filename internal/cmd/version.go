@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/versioner-io/versioner-cli/internal/version"
 )
 
 var versionCmd = &cobra.Command{
@@ -11,9 +12,9 @@ var versionCmd = &cobra.Command{
 	Short: "Print version information",
 	Long:  "Display the version, git commit, and build date of the Versioner CLI",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("versioner version %s\n", Version)
-		fmt.Printf("  git commit: %s\n", GitCommit)
-		fmt.Printf("  build date: %s\n", BuildDate)
+		fmt.Printf("versioner version %s\n", version.Version)
+		fmt.Printf("  git commit: %s\n", version.Commit)
+		fmt.Printf("  build date: %s\n", version.BuildDate)
 	},
 }
 

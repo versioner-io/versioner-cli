@@ -1,6 +1,10 @@
 # Contributing to Versioner CLI
 
-Thanks for contributing! This guide will help you get started.
+Thanks for your interest in contributing! This guide will help you get started with development.
+
+## Code of Conduct
+
+Be respectful and constructive. We're all here to build something useful together.
 
 ## Quick Start
 
@@ -264,12 +268,16 @@ Requires `golangci-lint` to be installed.
 just build
 ```
 
-Creates `bin/versioner` for your current platform.
+Creates `bin/versioner` for your current platform with version info injected.
 
 ### All Platforms
 
 ```bash
+# Build with dev version
 just build_all
+
+# Build with specific version (for releases)
+just build_all v0.1.0
 ```
 
 Creates binaries for:
@@ -277,7 +285,7 @@ Creates binaries for:
 - macOS (amd64, arm64)
 - Windows (amd64)
 
-All binaries are placed in `bin/` directory.
+All binaries are placed in `bin/` directory with version, commit SHA, and build date embedded.
 
 ## Commit Message Format
 
