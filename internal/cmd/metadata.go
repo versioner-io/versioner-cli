@@ -34,3 +34,28 @@ func ParseExtraMetadata(jsonStr string) (map[string]interface{}, error) {
 
 	return metadata, nil
 }
+
+// MergeMetadata merges auto-detected metadata with user-provided metadata
+// User-provided values take precedence over auto-detected values
+func MergeMetadata(autoDetected, userProvided map[string]interface{}) map[string]interface{} {
+	// If no auto-detected metadata, return user-provided as-is
+	if len(autoDetected) == 0 {
+		return userProvided
+	}
+
+	// If no user-provided metadata, return auto-detected as-is
+	if len(userProvided) == 0 {
+		return autoDetected
+	}
+
+	// Merge: start with auto-detected, then overlay user-provided
+	merged := make(map[string]interface{})
+	for k, v := range autoDetected {
+		merged[k] = v
+	}
+	for k, v := range userProvided {
+		merged[k] = v
+	}
+
+	return merged
+}

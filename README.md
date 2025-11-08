@@ -212,6 +212,79 @@ Use `--verbose` to see which values were auto-detected:
 versioner track build --product=api --status=completed --verbose
 ```
 
+### Auto-Detected Extra Metadata
+
+The CLI automatically captures system-specific metadata and includes it in the `extra_metadata` field with a `vi_` prefix (Versioner Internal). This metadata is merged with any user-provided `--extra-metadata` values, with user values taking precedence.
+
+**GitHub Actions:**
+- `vi_gh_workflow` - Workflow name
+- `vi_gh_job` - Job name
+- `vi_gh_run_attempt` - Retry attempt number
+- `vi_gh_event_name` - Triggering event (push, pull_request, etc.)
+- `vi_gh_ref` - Git reference
+- `vi_gh_head_ref` - PR head branch (if applicable)
+- `vi_gh_base_ref` - PR base branch (if applicable)
+
+**GitLab CI:**
+- `vi_gl_pipeline_id` - Pipeline ID
+- `vi_gl_pipeline_url` - Direct link to pipeline
+- `vi_gl_job_id` - Job ID
+- `vi_gl_job_name` - Job name
+- `vi_gl_job_url` - Direct link to job
+- `vi_gl_pipeline_source` - Pipeline trigger source
+
+**Jenkins:**
+- `vi_jenkins_job_name` - Job name
+- `vi_jenkins_build_url` - Build URL
+- `vi_jenkins_node_name` - Build agent name
+- `vi_jenkins_executor_number` - Executor number
+
+**CircleCI:**
+- `vi_circle_workflow_id` - Workflow ID
+- `vi_circle_workflow_job_id` - Workflow job ID
+- `vi_circle_job_name` - Job name
+- `vi_circle_node_index` - Parallel node index
+
+**Bitbucket Pipelines:**
+- `vi_bb_pipeline_uuid` - Pipeline UUID
+- `vi_bb_step_uuid` - Step UUID
+- `vi_bb_workspace` - Workspace name
+- `vi_bb_repo_slug` - Repository slug
+
+**Azure DevOps:**
+- `vi_azure_build_id` - Build ID
+- `vi_azure_definition_name` - Pipeline definition name
+- `vi_azure_agent_name` - Agent name
+- `vi_azure_team_project` - Team project name
+
+**Travis CI:**
+- `vi_travis_build_id` - Build ID
+- `vi_travis_job_id` - Job ID
+- `vi_travis_job_number` - Job number
+- `vi_travis_event_type` - Event type
+
+**Rundeck:**
+- `vi_rd_job_id` - Job UUID
+- `vi_rd_job_execid` - Execution ID
+- `vi_rd_job_serverurl` - Rundeck server URL
+- `vi_rd_job_project` - Project name
+- `vi_rd_job_name` - Job name
+- `vi_rd_job_group` - Job group
+- `vi_rd_job_url` - Direct link to execution
+
+**Example with merged metadata:**
+```bash
+# Auto-detected metadata is automatically included
+versioner track build \
+  --product=api-service \
+  --status=completed \
+  --extra-metadata='{"docker_image": "myorg/api:1.2.3", "artifacts": ["binary"]}'
+
+# Result includes both auto-detected (vi_*) and user-provided fields
+```
+
+**Note:** Only fields that are actually present in the environment are included. Missing values are gracefully omitted.
+
 ## Feedback & Support
 
 This is a beta release and we'd love your feedback!

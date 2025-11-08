@@ -165,14 +165,21 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 		event.CompletedAt = &completedAt
 	}
 
-	// Parse extra metadata if provided
+	// Get auto-detected metadata from CI/CD system
+	autoMetadata := detected.ExtraMetadata()
+
+	// Parse user-provided extra metadata if provided
+	var userMetadata map[string]interface{}
 	if extraMetadataStr, _ := cmd.Flags().GetString("extra-metadata"); extraMetadataStr != "" {
-		metadata, err := ParseExtraMetadata(extraMetadataStr)
+		var err error
+		userMetadata, err = ParseExtraMetadata(extraMetadataStr)
 		if err != nil {
 			return err
 		}
-		event.ExtraMetadata = metadata
 	}
+
+	// Merge metadata (user values take precedence)
+	event.ExtraMetadata = MergeMetadata(autoMetadata, userMetadata)
 
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Tracking build event:\n")

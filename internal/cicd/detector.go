@@ -37,6 +37,79 @@ type DetectedValues struct {
 	BuiltByName   string
 }
 
+// ExtraMetadata returns system-specific metadata with vi_ prefix
+// Only includes fields that are present in the environment
+func (d *DetectedValues) ExtraMetadata() map[string]interface{} {
+	metadata := make(map[string]interface{})
+
+	switch d.System {
+	case SystemGitHub:
+		addIfPresent(metadata, "vi_gh_workflow", os.Getenv("GITHUB_WORKFLOW"))
+		addIfPresent(metadata, "vi_gh_job", os.Getenv("GITHUB_JOB"))
+		addIfPresent(metadata, "vi_gh_run_attempt", os.Getenv("GITHUB_RUN_ATTEMPT"))
+		addIfPresent(metadata, "vi_gh_event_name", os.Getenv("GITHUB_EVENT_NAME"))
+		addIfPresent(metadata, "vi_gh_ref", os.Getenv("GITHUB_REF"))
+		addIfPresent(metadata, "vi_gh_head_ref", os.Getenv("GITHUB_HEAD_REF"))
+		addIfPresent(metadata, "vi_gh_base_ref", os.Getenv("GITHUB_BASE_REF"))
+
+	case SystemGitLab:
+		addIfPresent(metadata, "vi_gl_pipeline_id", os.Getenv("CI_PIPELINE_ID"))
+		addIfPresent(metadata, "vi_gl_pipeline_url", os.Getenv("CI_PIPELINE_URL"))
+		addIfPresent(metadata, "vi_gl_job_id", os.Getenv("CI_JOB_ID"))
+		addIfPresent(metadata, "vi_gl_job_name", os.Getenv("CI_JOB_NAME"))
+		addIfPresent(metadata, "vi_gl_job_url", os.Getenv("CI_JOB_URL"))
+		addIfPresent(metadata, "vi_gl_pipeline_source", os.Getenv("CI_PIPELINE_SOURCE"))
+
+	case SystemJenkins:
+		addIfPresent(metadata, "vi_jenkins_job_name", os.Getenv("JOB_NAME"))
+		addIfPresent(metadata, "vi_jenkins_build_url", os.Getenv("BUILD_URL"))
+		addIfPresent(metadata, "vi_jenkins_node_name", os.Getenv("NODE_NAME"))
+		addIfPresent(metadata, "vi_jenkins_executor_number", os.Getenv("EXECUTOR_NUMBER"))
+
+	case SystemCircleCI:
+		addIfPresent(metadata, "vi_circle_workflow_id", os.Getenv("CIRCLE_WORKFLOW_ID"))
+		addIfPresent(metadata, "vi_circle_workflow_job_id", os.Getenv("CIRCLE_WORKFLOW_JOB_ID"))
+		addIfPresent(metadata, "vi_circle_job_name", os.Getenv("CIRCLE_JOB"))
+		addIfPresent(metadata, "vi_circle_node_index", os.Getenv("CIRCLE_NODE_INDEX"))
+
+	case SystemBitbucket:
+		addIfPresent(metadata, "vi_bb_pipeline_uuid", os.Getenv("BITBUCKET_PIPELINE_UUID"))
+		addIfPresent(metadata, "vi_bb_step_uuid", os.Getenv("BITBUCKET_STEP_UUID"))
+		addIfPresent(metadata, "vi_bb_workspace", os.Getenv("BITBUCKET_WORKSPACE"))
+		addIfPresent(metadata, "vi_bb_repo_slug", os.Getenv("BITBUCKET_REPO_SLUG"))
+
+	case SystemAzure:
+		addIfPresent(metadata, "vi_azure_build_id", os.Getenv("BUILD_BUILDID"))
+		addIfPresent(metadata, "vi_azure_definition_name", os.Getenv("BUILD_DEFINITIONNAME"))
+		addIfPresent(metadata, "vi_azure_agent_name", os.Getenv("AGENT_NAME"))
+		addIfPresent(metadata, "vi_azure_team_project", os.Getenv("SYSTEM_TEAMPROJECT"))
+
+	case SystemTravis:
+		addIfPresent(metadata, "vi_travis_build_id", os.Getenv("TRAVIS_BUILD_ID"))
+		addIfPresent(metadata, "vi_travis_job_id", os.Getenv("TRAVIS_JOB_ID"))
+		addIfPresent(metadata, "vi_travis_job_number", os.Getenv("TRAVIS_JOB_NUMBER"))
+		addIfPresent(metadata, "vi_travis_event_type", os.Getenv("TRAVIS_EVENT_TYPE"))
+
+	case SystemRundeck:
+		addIfPresent(metadata, "vi_rd_job_id", os.Getenv("RD_JOB_ID"))
+		addIfPresent(metadata, "vi_rd_job_execid", os.Getenv("RD_JOB_EXECID"))
+		addIfPresent(metadata, "vi_rd_job_serverurl", os.Getenv("RD_JOB_SERVERURL"))
+		addIfPresent(metadata, "vi_rd_job_project", os.Getenv("RD_JOB_PROJECT"))
+		addIfPresent(metadata, "vi_rd_job_name", os.Getenv("RD_JOB_NAME"))
+		addIfPresent(metadata, "vi_rd_job_group", os.Getenv("RD_JOB_GROUP"))
+		addIfPresent(metadata, "vi_rd_job_url", os.Getenv("RD_JOB_URL"))
+	}
+
+	return metadata
+}
+
+// addIfPresent adds a key-value pair to the map only if the value is non-empty
+func addIfPresent(m map[string]interface{}, key, value string) {
+	if value != "" {
+		m[key] = value
+	}
+}
+
 // Detect identifies the CI/CD system and extracts relevant values
 func Detect() *DetectedValues {
 	detected := &DetectedValues{
