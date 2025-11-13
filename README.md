@@ -297,9 +297,7 @@ This is a beta release and we'd love your feedback!
 
 For comprehensive documentation:
 
-- **[API Reference](https://api.versioner.io/docs)** - Interactive OpenAPI documentation
-- **[Web Dashboard](https://app.versioner.io)** - View your deployment history
-- **[CLI Integration Guide](https://github.com/versioner-io/versioner-docs/blob/main/features/cli-integration.md)** - Complete feature documentation and roadmap
+- See [Versioner docs](https://docs.versioner.io)
 
 ### Repository-Specific Docs
 
