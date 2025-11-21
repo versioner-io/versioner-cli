@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -16,22 +17,39 @@ var deploymentCmd = &cobra.Command{
 	Use:   "deployment",
 	Short: "Track a deployment event",
 	Long: `Track a deployment lifecycle event with the Versioner API.
-This command sends deployment information to track deployments to environments.`,
-	Example: `  # Track a successful deployment
+This command sends deployment information to track deployments to environments.
+
+When status=started, the API automatically runs preflight checks to validate:
+- No concurrent deployments (409 Conflict)
+- No-deploy windows/schedules (423 Locked)
+- Flow requirements, soak time, approvals (428 Precondition Required)
+
+Exit codes:
+  0 - Success
+  1 - General error (network, invalid arguments)
+  4 - API error (validation, authentication)
+  5 - Preflight check failure (deployment blocked)`,
+	Example: `  # Track a deployment start (triggers preflight checks)
   versioner track deployment \
     --product=api-service \
     --environment=production \
     --version=1.2.3 \
-    --status=success
+    --status=started
 
-  # Track a deployment with additional metadata
+  # Track deployment completion
   versioner track deployment \
     --product=api-service \
-    --environment=staging \
+    --environment=production \
     --version=1.2.3 \
-    --status=success \
-    --scm-sha=abc123 \
-    --build-number=456`,
+    --status=completed
+
+  # Emergency deployment (skip preflight checks)
+  versioner track deployment \
+    --product=api-service \
+    --environment=production \
+    --version=1.2.3-hotfix \
+    --status=started \
+    --skip-preflight-checks`,
 	RunE: runDeploymentTrack,
 }
 
@@ -56,6 +74,7 @@ func init() {
 	deploymentCmd.Flags().String("deployed-by-name", "", "User display name")
 	deploymentCmd.Flags().String("completed-at", "", "Deployment completion timestamp (ISO 8601 format)")
 	deploymentCmd.Flags().String("extra-metadata", "", "Additional metadata as JSON object (max 100KB)")
+	deploymentCmd.Flags().Bool("skip-preflight-checks", false, "Skip preflight checks (emergency use only)")
 
 	// Bind flags to viper
 	_ = viper.BindPFlag("product", deploymentCmd.Flags().Lookup("product"))
@@ -185,6 +204,10 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 	// Merge metadata (user values take precedence)
 	event.ExtraMetadata = MergeMetadata(autoMetadata, userMetadata)
 
+	// Get skip-preflight-checks flag
+	skipPreflightChecks, _ := cmd.Flags().GetBool("skip-preflight-checks")
+	event.SkipPreflightChecks = skipPreflightChecks
+
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Tracking deployment event:\n")
 		if detected.System != cicd.SystemUnknown {
@@ -211,13 +234,18 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 	resp, err := client.CreateDeploymentEvent(event)
 	if err != nil {
 		if apiErr, ok := err.(*api.APIError); ok {
-			// API error - exit code 2
+			// Check if this is a preflight check failure
+			if apiErr.IsPreflightError() {
+				handlePreflightError(apiErr)
+				os.Exit(5) // Exit code 5 for preflight failures
+			}
+			// Other API error - exit code 4
 			fmt.Fprintf(os.Stderr, "API error: %s\n", apiErr.Error())
-			os.Exit(2)
+			os.Exit(4)
 		}
-		// Network or other error - exit code 2
+		// Network or other error - exit code 1
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-		os.Exit(2)
+		os.Exit(1)
 	}
 
 	// Success
@@ -230,4 +258,90 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// handlePreflightError formats and displays preflight check errors
+func handlePreflightError(apiErr *api.APIError) {
+	_, message, code, retryAfter, details, ok := apiErr.GetPreflightDetails()
+	if !ok {
+		// Fallback if we can't parse the error structure
+		fmt.Fprintf(os.Stderr, "❌ Deployment Failed (HTTP %d)\n\n", apiErr.StatusCode)
+		fmt.Fprintf(os.Stderr, "%s\n", apiErr.Error())
+		return
+	}
+
+	// Get rule name from details if available
+	ruleName := ""
+	if details != nil {
+		if name, exists := details["rule_name"].(string); exists {
+			ruleName = name
+		}
+	}
+
+	// Format output based on status code and error code
+	switch apiErr.StatusCode {
+	case 409:
+		// Deployment Conflict
+		fmt.Fprintf(os.Stderr, "⚠️  Deployment Conflict\n\n")
+		fmt.Fprintf(os.Stderr, "%s\n", message)
+		fmt.Fprintf(os.Stderr, "Another deployment is in progress. Please wait and retry.\n")
+
+	case 423:
+		// Schedule Block
+		fmt.Fprintf(os.Stderr, "🔒 Deployment Blocked by Schedule\n\n")
+		if ruleName != "" {
+			fmt.Fprintf(os.Stderr, "Rule: %s\n", ruleName)
+		}
+		fmt.Fprintf(os.Stderr, "%s\n", message)
+		if retryAfter != "" {
+			fmt.Fprintf(os.Stderr, "\nRetry after: %s\n", retryAfter)
+		}
+		fmt.Fprintf(os.Stderr, "\nTo skip checks (emergency only), add:\n")
+		fmt.Fprintf(os.Stderr, "  --skip-preflight-checks\n")
+
+	case 428:
+		// Precondition Failed
+		fmt.Fprintf(os.Stderr, "❌ Deployment Precondition Failed\n\n")
+		fmt.Fprintf(os.Stderr, "Error: %s\n", code)
+		if ruleName != "" {
+			fmt.Fprintf(os.Stderr, "Rule: %s\n", ruleName)
+		}
+		fmt.Fprintf(os.Stderr, "%s\n", message)
+
+		// Specific guidance based on error code
+		switch code {
+		case "FLOW_VIOLATION":
+			fmt.Fprintf(os.Stderr, "\nDeploy to required environments first, then retry.\n")
+
+		case "INSUFFICIENT_SOAK_TIME":
+			if retryAfter != "" {
+				fmt.Fprintf(os.Stderr, "\nRetry after: %s\n", retryAfter)
+			}
+			fmt.Fprintf(os.Stderr, "\nWait for soak time to complete, then retry.\n")
+			fmt.Fprintf(os.Stderr, "\nTo skip checks (emergency only), add:\n")
+			fmt.Fprintf(os.Stderr, "  --skip-preflight-checks\n")
+
+		case "QUALITY_APPROVAL_REQUIRED", "APPROVAL_REQUIRED":
+			fmt.Fprintf(os.Stderr, "\nApproval required before deployment can proceed.\n")
+			fmt.Fprintf(os.Stderr, "Obtain approval via Versioner UI, then retry.\n")
+
+		default:
+			// Unknown error code - provide generic guidance
+			if retryAfter != "" {
+				fmt.Fprintf(os.Stderr, "\nRetry after: %s\n", retryAfter)
+			}
+			fmt.Fprintf(os.Stderr, "\nResolve the issue described above, then retry.\n")
+			fmt.Fprintf(os.Stderr, "\nTo skip checks (emergency only), add:\n")
+			fmt.Fprintf(os.Stderr, "  --skip-preflight-checks\n")
+		}
+	}
+
+	// Always print full details for debugging
+	if details != nil {
+		fmt.Fprintf(os.Stderr, "\nDetails:\n")
+		detailsJSON, err := json.MarshalIndent(details, "  ", "  ")
+		if err == nil {
+			fmt.Fprintf(os.Stderr, "  %s\n", string(detailsJSON))
+		}
+	}
 }
