@@ -183,6 +183,203 @@ Both build and deployment events support these statuses:
 
 Aliases like `success`, `in_progress`, `cancelled`, etc. are automatically normalized.
 
+## Preflight Checks
+
+When tracking a deployment with `--status=started`, the API automatically runs **preflight checks** to validate the deployment before it proceeds. These checks help enforce deployment policies and prevent common issues.
+
+### What Gets Checked
+
+Preflight checks validate:
+
+1. **Concurrent Deployments** - Prevents multiple simultaneous deployments to the same environment
+2. **No-Deploy Windows** - Blocks deployments during scheduled blackout periods (e.g., Friday afternoons)
+3. **Flow Requirements** - Ensures versions are deployed to prerequisite environments first (e.g., staging before production)
+4. **Soak Time** - Requires versions to run in an environment for a minimum duration before promoting
+5. **Quality Approvals** - Requires QA/security sign-off from prerequisite environments
+6. **Release Approvals** - Requires manager/lead approval before deploying to sensitive environments
+
+### Exit Codes
+
+The CLI uses specific exit codes to indicate different failure types:
+
+- **0** - Success (deployment allowed)
+- **1** - General error (network issues, invalid arguments)
+- **4** - API error (authentication, validation)
+- **5** - Preflight check failure (deployment blocked)
+
+### Error Types and Responses
+
+#### 409 - Deployment Conflict
+
+Another deployment is already in progress:
+
+```
+⚠️  Deployment Conflict
+
+Another deployment to production is already in progress
+Another deployment is in progress. Please wait and retry.
+```
+
+**Action:** Wait for the current deployment to complete, then retry.
+
+#### 423 - Schedule Block
+
+Deployment blocked by a no-deploy window:
+
+```
+🔒 Deployment Blocked by Schedule
+
+Rule: Production Freeze - Friday Afternoons
+Deployment blocked by no-deploy window
+
+Retry after: 2025-11-21T18:00:00-08:00
+
+To skip checks (emergency only), add:
+  --skip-preflight-checks
+```
+
+**Action:** Wait until the blackout window ends, or use `--skip-preflight-checks` for emergencies.
+
+#### 428 - Precondition Failed
+
+Missing required prerequisites:
+
+**Flow Violation:**
+```
+❌ Deployment Precondition Failed
+
+Error: FLOW_VIOLATION
+Rule: Staging Required Before Production
+Version must be deployed to staging first
+
+Deploy to required environments first, then retry.
+```
+
+**Insufficient Soak Time:**
+```
+❌ Deployment Precondition Failed
+
+Error: INSUFFICIENT_SOAK_TIME
+Rule: 24hr Staging Soak
+Version must soak in staging for at least 24 hours
+
+Retry after: 2025-11-22T10:00:00Z
+
+Wait for soak time to complete, then retry.
+```
+
+**Approval Required:**
+```
+❌ Deployment Precondition Failed
+
+Error: APPROVAL_REQUIRED
+Rule: Prod Needs 2 Approvals
+production deployment requires 2 release approval(s)
+
+Approval required before deployment can proceed.
+Obtain approval via Versioner UI, then retry.
+```
+
+### Emergency Override
+
+For production incidents or hotfixes, you can skip preflight checks:
+
+```bash
+versioner track deployment \
+  --product=api-service \
+  --environment=production \
+  --version=1.2.3-hotfix \
+  --status=started \
+  --skip-preflight-checks
+```
+
+**⚠️ Warning:** Only use `--skip-preflight-checks` for:
+- Production incidents requiring immediate fixes
+- Approved emergency changes
+- When deployment rules are temporarily misconfigured
+
+Always document why checks were skipped in your deployment logs.
+
+### Full Deployment Workflow
+
+```bash
+# 1. Start deployment (triggers preflight checks)
+versioner track deployment \
+  --product=api-service \
+  --environment=production \
+  --version=1.2.3 \
+  --status=started
+
+# 2. If checks pass (exit code 0), proceed with actual deployment
+if [ $? -eq 0 ]; then
+  # Your deployment commands here
+  kubectl apply -f deployment.yaml
+
+  # 3. Report completion
+  versioner track deployment \
+    --product=api-service \
+    --environment=production \
+    --version=1.2.3 \
+    --status=completed
+fi
+```
+
+### CI/CD Integration
+
+**GitHub Actions:**
+```yaml
+- name: Start Deployment
+  id: preflight
+  run: |
+    versioner track deployment \
+      --product=api-service \
+      --environment=production \
+      --version=${{ github.sha }} \
+      --status=started
+  env:
+    VERSIONER_API_KEY: ${{ secrets.VERSIONER_API_KEY }}
+  continue-on-error: true
+
+- name: Deploy Application
+  if: steps.preflight.outcome == 'success'
+  run: |
+    # Your deployment commands
+    kubectl apply -f k8s/
+
+- name: Report Completion
+  if: steps.preflight.outcome == 'success'
+  run: |
+    versioner track deployment \
+      --product=api-service \
+      --environment=production \
+      --version=${{ github.sha }} \
+      --status=completed
+  env:
+    VERSIONER_API_KEY: ${{ secrets.VERSIONER_API_KEY }}
+```
+
+**GitLab CI:**
+```yaml
+deploy:production:
+  script:
+    # Preflight check
+    - |
+      versioner track deployment \
+        --product=api \
+        --environment=production \
+        --version=$CI_COMMIT_SHA \
+        --status=started
+    # Deploy if checks pass
+    - kubectl apply -f k8s/
+    # Report completion
+    - |
+      versioner track deployment \
+        --product=api \
+        --environment=production \
+        --version=$CI_COMMIT_SHA \
+        --status=completed
+```
+
 ## CI/CD Auto-Detection
 
 The CLI automatically detects your CI/CD environment and extracts relevant metadata. Supported systems:
@@ -297,9 +494,7 @@ This is a beta release and we'd love your feedback!
 
 For comprehensive documentation:
 
-- **[API Reference](https://api.versioner.io/docs)** - Interactive OpenAPI documentation
-- **[Web Dashboard](https://app.versioner.io)** - View your deployment history
-- **[CLI Integration Guide](https://github.com/versioner-io/versioner-docs/blob/main/features/cli-integration.md)** - Complete feature documentation and roadmap
+- See [Versioner docs](https://docs.versioner.io)
 
 ### Repository-Specific Docs
 

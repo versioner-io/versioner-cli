@@ -135,13 +135,23 @@ func handleResponse(resp *http.Response, result interface{}) error {
 	}
 
 	// Error response
-	var apiError APIError
-	if err := json.Unmarshal(body, &apiError); err != nil {
+	var errorResponse struct {
+		Detail interface{} `json:"detail"`
+	}
+	if err := json.Unmarshal(body, &errorResponse); err != nil {
 		// Fallback if error response doesn't match expected format
-		return fmt.Errorf("API error (HTTP %d): %s", resp.StatusCode, string(body))
+		return &APIError{
+			StatusCode: resp.StatusCode,
+			Detail:     string(body),
+		}
 	}
 
-	return &apiError
+	apiError := &APIError{
+		StatusCode: resp.StatusCode,
+		Detail:     errorResponse.Detail,
+	}
+
+	return apiError
 }
 
 // APIError represents an error response from the API
@@ -163,4 +173,36 @@ func (e *APIError) Error() string {
 	default:
 		return fmt.Sprintf("API error: %v", detail)
 	}
+}
+
+// IsPreflightError checks if this is a preflight check failure (409, 423, 428)
+func (e *APIError) IsPreflightError() bool {
+	return e.StatusCode == 409 || e.StatusCode == 423 || e.StatusCode == 428
+}
+
+// GetPreflightDetails extracts structured preflight error details
+func (e *APIError) GetPreflightDetails() (errorType, message, code, retryAfter string, details map[string]interface{}, ok bool) {
+	detailMap, ok := e.Detail.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	if errType, exists := detailMap["error"].(string); exists {
+		errorType = errType
+	}
+	if msg, exists := detailMap["message"].(string); exists {
+		message = msg
+	}
+	if c, exists := detailMap["code"].(string); exists {
+		code = c
+	}
+	if retry, exists := detailMap["retry_after"].(string); exists {
+		retryAfter = retry
+	}
+	if det, exists := detailMap["details"].(map[string]interface{}); exists {
+		details = det
+	}
+
+	ok = true
+	return
 }
