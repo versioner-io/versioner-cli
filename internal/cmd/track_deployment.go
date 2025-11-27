@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/versioner-io/versioner-cli/internal/api"
 	"github.com/versioner-io/versioner-cli/internal/cicd"
+	"github.com/versioner-io/versioner-cli/internal/github"
 	"github.com/versioner-io/versioner-cli/internal/status"
 )
 
@@ -277,6 +278,9 @@ func handlePreflightError(apiErr *api.APIError) {
 			ruleName = name
 		}
 	}
+
+	// Write GitHub Actions annotation if running in GitHub Actions
+	github.WriteErrorAnnotation(apiErr.StatusCode, code, message, ruleName, retryAfter, details)
 
 	// Format output based on status code and error code
 	switch apiErr.StatusCode {
