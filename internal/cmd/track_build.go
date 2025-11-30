@@ -227,7 +227,8 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 	}
 
 	// Write GitHub Actions job summary
-	github.WriteSuccessSummary("Build", product, statusValue, version, event.SCMSha, event.BuildURL)
+	uiURL := viper.GetString("ui_url")
+	github.WriteSuccessSummary("Build", "", statusValue, version, event.SCMSha, uiURL, resp.VersionID)
 
 	return nil
 }

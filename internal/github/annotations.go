@@ -22,7 +22,7 @@ func WriteErrorAnnotation(statusCode int, errorCode, message, ruleName string, r
 }
 
 // WriteSuccessSummary writes a GitHub Actions job summary for successful deployment tracking
-func WriteSuccessSummary(action, environment, status, version, scmSha, deployURL string) {
+func WriteSuccessSummary(action, environment, status, version, scmSha, uiURL, resourceID string) {
 	// Only write summaries if running in GitHub Actions
 	if os.Getenv("GITHUB_ACTIONS") != "true" {
 		return
@@ -39,7 +39,9 @@ func WriteSuccessSummary(action, environment, status, version, scmSha, deployURL
 
 	// Add key information
 	summary += fmt.Sprintf("- **Action:** %s\n", action)
-	summary += fmt.Sprintf("- **Environment:** %s\n", environment)
+	if environment != "" {
+		summary += fmt.Sprintf("- **Environment:** %s\n", environment)
+	}
 	summary += fmt.Sprintf("- **Status:** %s\n", formatStatus(status))
 	summary += fmt.Sprintf("- **Version:** `%s`\n", version)
 
@@ -47,8 +49,17 @@ func WriteSuccessSummary(action, environment, status, version, scmSha, deployURL
 		summary += fmt.Sprintf("- **Git SHA:** `%s`\n", scmSha)
 	}
 
-	if deployURL != "" {
-		summary += fmt.Sprintf("\n[View Deployment Run →](%s)\n", deployURL)
+	// Add "View in Versioner" link
+	if uiURL != "" && resourceID != "" {
+		var viewURL string
+		if action == "Deployment" {
+			viewURL = fmt.Sprintf("%s/manage/deployments?view=%s", uiURL, resourceID)
+		} else if action == "Build" {
+			viewURL = fmt.Sprintf("%s/manage/versions?view=%s", uiURL, resourceID)
+		}
+		if viewURL != "" {
+			summary += fmt.Sprintf("\n[View in Versioner →](%s)\n", viewURL)
+		}
 	}
 
 	// Write to file

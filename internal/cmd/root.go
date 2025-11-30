@@ -39,10 +39,12 @@ func init() {
 	// API configuration flags
 	rootCmd.PersistentFlags().String("api-url", "", "Versioner API URL (default: https://api.versioner.io)")
 	rootCmd.PersistentFlags().String("api-key", "", "Versioner API key (prefer VERSIONER_API_KEY env var)")
+	rootCmd.PersistentFlags().String("ui-url", "", "Versioner UI URL (default: https://app.versioner.io)")
 
 	// Bind flags to viper
 	_ = viper.BindPFlag("api_url", rootCmd.PersistentFlags().Lookup("api-url"))
 	_ = viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api-key"))
+	_ = viper.BindPFlag("ui_url", rootCmd.PersistentFlags().Lookup("ui-url"))
 }
 
 // initConfig reads in config file and ENV variables
@@ -71,6 +73,7 @@ func initConfig() {
 
 	// Set defaults
 	viper.SetDefault("api_url", "https://api.versioner.io")
+	viper.SetDefault("ui_url", "https://app.versioner.io")
 
 	// Read config file if it exists
 	if err := viper.ReadInConfig(); err == nil && verbose {

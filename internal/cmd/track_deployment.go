@@ -261,7 +261,8 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 	}
 
 	// Write GitHub Actions job summary
-	github.WriteSuccessSummary("Deployment", environment, statusValue, version, event.SCMSha, event.DeployURL)
+	uiURL := viper.GetString("ui_url")
+	github.WriteSuccessSummary("Deployment", environment, statusValue, version, event.SCMSha, uiURL, resp.ID)
 
 	return nil
 }
