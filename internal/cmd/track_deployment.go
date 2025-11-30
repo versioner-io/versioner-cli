@@ -68,7 +68,7 @@ func init() {
 	deploymentCmd.Flags().String("build-number", "", "Build number from CI system")
 	deploymentCmd.Flags().String("scm-sha", "", "Git commit SHA (40-character hash)")
 	deploymentCmd.Flags().String("scm-repository", "", "Source control repository (e.g., owner/repo)")
-	deploymentCmd.Flags().String("build-url", "", "Link to CI/CD build run")
+	deploymentCmd.Flags().String("deploy-url", "", "Link to deployment run/logs")
 	deploymentCmd.Flags().String("invoke-id", "", "Invocation/run ID from CI system")
 	deploymentCmd.Flags().String("deployed-by", "", "User identifier (username, email, or ID)")
 	deploymentCmd.Flags().String("deployed-by-email", "", "User email")
@@ -86,7 +86,7 @@ func init() {
 	_ = viper.BindPFlag("build_number", deploymentCmd.Flags().Lookup("build-number"))
 	_ = viper.BindPFlag("scm_sha", deploymentCmd.Flags().Lookup("scm-sha"))
 	_ = viper.BindPFlag("scm_repository", deploymentCmd.Flags().Lookup("scm-repository"))
-	_ = viper.BindPFlag("build_url", deploymentCmd.Flags().Lookup("build-url"))
+	_ = viper.BindPFlag("deploy_url", deploymentCmd.Flags().Lookup("deploy-url"))
 	_ = viper.BindPFlag("invoke_id", deploymentCmd.Flags().Lookup("invoke-id"))
 	_ = viper.BindPFlag("deployed_by", deploymentCmd.Flags().Lookup("deployed-by"))
 	_ = viper.BindPFlag("deployed_by_email", deploymentCmd.Flags().Lookup("deployed-by-email"))
@@ -173,7 +173,7 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 		BuildNumber:     getWithFallback("build-number", "build_number", detected.BuildNumber),
 		SCMSha:          getWithFallback("scm-sha", "scm_sha", detected.SCMSha),
 		SCMRepository:   getWithFallback("scm-repository", "scm_repository", detected.SCMRepository),
-		BuildURL:        getWithFallback("build-url", "build_url", detected.BuildURL),
+		DeployURL:       getWithFallback("deploy-url", "deploy_url", detected.BuildURL),
 		InvokeID:        getWithFallback("invoke-id", "invoke_id", detected.InvokeID),
 		DeployedBy:      getWithFallback("deployed-by", "deployed_by", detected.BuiltBy),
 		DeployedByEmail: getWithFallback("deployed-by-email", "deployed_by_email", detected.BuiltByEmail),

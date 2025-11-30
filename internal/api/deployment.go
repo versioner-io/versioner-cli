@@ -12,7 +12,7 @@ type DeploymentEventCreate struct {
 	BuildNumber         string                 `json:"build_number,omitempty"`
 	SCMSha              string                 `json:"scm_sha,omitempty"`
 	SCMRepository       string                 `json:"scm_repository,omitempty"`
-	BuildURL            string                 `json:"build_url,omitempty"`
+	DeployURL           string                 `json:"deploy_url,omitempty"`
 	InvokeID            string                 `json:"invoke_id,omitempty"`
 	DeployedBy          string                 `json:"deployed_by,omitempty"`
 	DeployedByEmail     string                 `json:"deployed_by_email,omitempty"`
