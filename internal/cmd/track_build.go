@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/versioner-io/versioner-cli/internal/api"
 	"github.com/versioner-io/versioner-cli/internal/cicd"
+	"github.com/versioner-io/versioner-cli/internal/github"
 	"github.com/versioner-io/versioner-cli/internal/status"
 )
 
@@ -207,10 +208,12 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		if apiErr, ok := err.(*api.APIError); ok {
 			// API error - exit code 2
+			github.WriteGenericErrorAnnotation("Build", "API Error", apiErr.Error())
 			fmt.Fprintf(os.Stderr, "API error: %s\n", apiErr.Error())
 			os.Exit(2)
 		}
 		// Network or other error - exit code 2
+		github.WriteGenericErrorAnnotation("Build", "Network Error", err.Error())
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
 		os.Exit(2)
 	}
@@ -222,6 +225,9 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 		fmt.Printf("  Product ID: %s\n", resp.ProductID)
 		fmt.Printf("  Version ID: %s\n", resp.VersionID)
 	}
+
+	// Write GitHub Actions job summary
+	github.WriteSuccessSummary("Build", product, statusValue, version, event.SCMSha, event.BuildURL)
 
 	return nil
 }
