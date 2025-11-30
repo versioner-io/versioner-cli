@@ -208,10 +208,12 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		if apiErr, ok := err.(*api.APIError); ok {
 			// API error - exit code 2
+			github.WriteGenericErrorAnnotation("Build", "API Error", apiErr.Error())
 			fmt.Fprintf(os.Stderr, "API error: %s\n", apiErr.Error())
 			os.Exit(2)
 		}
 		// Network or other error - exit code 2
+		github.WriteGenericErrorAnnotation("Build", "Network Error", err.Error())
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
 		os.Exit(2)
 	}

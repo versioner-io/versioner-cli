@@ -241,10 +241,12 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 				os.Exit(5) // Exit code 5 for preflight failures
 			}
 			// Other API error - exit code 4
+			github.WriteGenericErrorAnnotation("Deployment", "API Error", apiErr.Error())
 			fmt.Fprintf(os.Stderr, "API error: %s\n", apiErr.Error())
 			os.Exit(4)
 		}
 		// Network or other error - exit code 1
+		github.WriteGenericErrorAnnotation("Deployment", "Network Error", err.Error())
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
 		os.Exit(1)
 	}

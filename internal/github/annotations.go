@@ -62,6 +62,63 @@ func WriteSuccessSummary(action, environment, status, version, scmSha, deployURL
 	_, _ = f.WriteString(summary)
 }
 
+// WriteGenericErrorAnnotation writes a GitHub Actions error annotation for generic failures
+// (API errors, network errors, etc.)
+func WriteGenericErrorAnnotation(action, errorType, errorMessage string) {
+	// Only write annotations if running in GitHub Actions
+	if os.Getenv("GITHUB_ACTIONS") != "true" {
+		return
+	}
+
+	summaryPath := os.Getenv("GITHUB_STEP_SUMMARY")
+	if summaryPath == "" {
+		return
+	}
+
+	// Write workflow command annotation
+	title := fmt.Sprintf("Versioner %s Failed", action)
+	escapedMessage := escapeWorkflowCommand(errorMessage)
+	fmt.Fprintf(os.Stdout, "::error title=%s::%s\n", title, escapedMessage)
+
+	// Build the summary
+	var summary string
+	summary += fmt.Sprintf("## ❌ Versioner %s Failed\n\n", action)
+	summary += fmt.Sprintf("### %s\n\n", errorType)
+	summary += fmt.Sprintf("**Error:** %s\n\n", errorMessage)
+
+	summary += "**Possible Causes:**\n"
+	switch errorType {
+	case "API Error":
+		summary += "- Invalid API key or authentication failure\n"
+		summary += "- Validation error (check required fields)\n"
+		summary += "- API service unavailable\n"
+		summary += "- Rate limiting or quota exceeded\n"
+	case "Network Error":
+		summary += "- Network connectivity issues\n"
+		summary += "- DNS resolution failure\n"
+		summary += "- API endpoint unreachable\n"
+		summary += "- Timeout or connection refused\n"
+	default:
+		summary += "- Check error message above for details\n"
+	}
+
+	summary += "\n**Action Required:**\n"
+	summary += "- Verify your `VERSIONER_API_KEY` is set correctly\n"
+	summary += "- Check network connectivity to Versioner API\n"
+	summary += "- Review error message for specific guidance\n"
+	summary += "- Contact support if issue persists\n"
+
+	// Write to file
+	f, err := os.OpenFile(summaryPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		// Silently fail - don't break the CLI if we can't write the summary
+		return
+	}
+	defer f.Close()
+
+	_, _ = f.WriteString(summary)
+}
+
 // formatStatus adds an emoji to the status for visual clarity
 func formatStatus(status string) string {
 	switch status {
