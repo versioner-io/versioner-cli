@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/versioner-io/versioner-cli/internal/api"
 	"github.com/versioner-io/versioner-cli/internal/cicd"
+	"github.com/versioner-io/versioner-cli/internal/github"
 	"github.com/versioner-io/versioner-cli/internal/status"
 )
 
@@ -222,6 +223,9 @@ func runBuildTrack(cmd *cobra.Command, args []string) error {
 		fmt.Printf("  Product ID: %s\n", resp.ProductID)
 		fmt.Printf("  Version ID: %s\n", resp.VersionID)
 	}
+
+	// Write GitHub Actions job summary
+	github.WriteSuccessSummary("Build", product, statusValue, version, event.SCMSha, event.BuildURL)
 
 	return nil
 }

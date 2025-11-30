@@ -21,6 +21,65 @@ func WriteErrorAnnotation(statusCode int, errorCode, message, ruleName string, r
 	writeJobSummary(statusCode, errorCode, message, ruleName, retryAfter, details)
 }
 
+// WriteSuccessSummary writes a GitHub Actions job summary for successful deployment tracking
+func WriteSuccessSummary(action, environment, status, version, scmSha, deployURL string) {
+	// Only write summaries if running in GitHub Actions
+	if os.Getenv("GITHUB_ACTIONS") != "true" {
+		return
+	}
+
+	summaryPath := os.Getenv("GITHUB_STEP_SUMMARY")
+	if summaryPath == "" {
+		return
+	}
+
+	// Build the summary
+	var summary string
+	summary += "## 🚀 Versioner Summary\n\n"
+
+	// Add key information
+	summary += fmt.Sprintf("- **Action:** %s\n", action)
+	summary += fmt.Sprintf("- **Environment:** %s\n", environment)
+	summary += fmt.Sprintf("- **Status:** %s\n", formatStatus(status))
+	summary += fmt.Sprintf("- **Version:** `%s`\n", version)
+
+	if scmSha != "" {
+		summary += fmt.Sprintf("- **Git SHA:** `%s`\n", scmSha)
+	}
+
+	if deployURL != "" {
+		summary += fmt.Sprintf("\n[View Deployment Run →](%s)\n", deployURL)
+	}
+
+	// Write to file
+	f, err := os.OpenFile(summaryPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		// Silently fail - don't break the CLI if we can't write the summary
+		return
+	}
+	defer f.Close()
+
+	_, _ = f.WriteString(summary)
+}
+
+// formatStatus adds an emoji to the status for visual clarity
+func formatStatus(status string) string {
+	switch status {
+	case "started", "in_progress":
+		return "⏳ " + status
+	case "completed", "success":
+		return "✅ " + status
+	case "failed":
+		return "❌ " + status
+	case "aborted", "cancelled":
+		return "🚫 " + status
+	case "pending":
+		return "⏸️ " + status
+	default:
+		return status
+	}
+}
+
 // writeWorkflowCommand outputs a GitHub Actions workflow command for error annotation
 func writeWorkflowCommand(statusCode int, errorCode, message, ruleName string) {
 	// Format: ::error title=<title>::<message>

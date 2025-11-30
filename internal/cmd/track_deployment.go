@@ -258,6 +258,9 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 		fmt.Printf("  Environment ID: %s\n", resp.EnvironmentID)
 	}
 
+	// Write GitHub Actions job summary
+	github.WriteSuccessSummary("Deployment", environment, statusValue, version, event.SCMSha, event.DeployURL)
+
 	return nil
 }
 
