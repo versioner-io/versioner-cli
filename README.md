@@ -183,6 +183,57 @@ Both build and deployment events support these statuses:
 
 Aliases like `success`, `in_progress`, `cancelled`, etc. are automatically normalized.
 
+## API Error Handling
+
+The CLI provides control over how API connectivity and authentication errors are handled:
+
+### `--fail-on-api-error` Flag
+
+**Default:** `true` (API errors fail the command)
+
+**Purpose:** Controls whether API connectivity/authentication errors should block deployments
+
+**Behavior:**
+- `--fail-on-api-error=true` (default): API errors fail the command (exit code 4)
+- `--fail-on-api-error=false`: API errors log warnings but allow command to continue (exit code 0)
+
+**Environment Variable:** `VERSIONER_FAIL_ON_API_ERROR=true|false`
+
+**Use Cases:**
+
+**Mission-Critical Audit Trail (Default):**
+```bash
+# Every deployment MUST be recorded
+versioner track deployment \
+  --product=api-service \
+  --environment=production \
+  --version=1.2.3 \
+  --status=started \
+  --fail-on-api-error=true  # Default behavior
+```
+
+**Best-Effort Observability:**
+```bash
+# Recording is nice-to-have, don't block production deployments
+versioner track deployment \
+  --product=api-service \
+  --environment=production \
+  --version=1.2.3 \
+  --status=started \
+  --fail-on-api-error=false
+```
+
+**API Errors Affected:**
+- 401 (Authentication failed)
+- 403 (Authorization failed)
+- 404 (Endpoint not found)
+- 422 (Validation error)
+- Connection refused
+- Request timeout
+- Other HTTP errors
+
+**Note:** Preflight check rejections (409, 423, 428) always fail regardless of this flag. Policy enforcement is controlled server-side via rule status settings.
+
 ## Preflight Checks
 
 When tracking a deployment with `--status=started`, the API automatically runs **preflight checks** to validate the deployment before it proceeds. These checks help enforce deployment policies and prevent common issues.
@@ -280,9 +331,34 @@ Approval required before deployment can proceed.
 Obtain approval via Versioner UI, then retry.
 ```
 
-### Emergency Override
+### Policy Control
 
-For production incidents or hotfixes, you can skip preflight checks:
+**Preferred Approach: Server-Side Rule Status**
+
+Policy enforcement should be controlled server-side via the Versioner UI:
+
+**Rule Status Options:**
+- `enabled` - Rule is evaluated and blocks on failure (returns 409/423/428)
+- `report_only` - Rule is evaluated but doesn't block (returns 200 with warnings)
+- `disabled` - Rule is not evaluated at all
+
+**Emergency Deployments:**
+1. Admin logs into Versioner UI
+2. Navigate to Deployment Rules
+3. Change rule status from "Enabled" to "Report Only" or "Disabled"
+4. Deploy normally - rules won't block
+5. After incident, flip back to "Enabled"
+
+**Benefits:**
+- ✅ Centralized control (no code changes)
+- ✅ Granular (per-rule control)
+- ✅ Auditable (status changes tracked)
+- ✅ Reversible (instant flip back)
+- ✅ Consistent across all clients
+
+**Emergency Override (Deprecated):**
+
+For immediate bypass when you can't access the UI:
 
 ```bash
 versioner track deployment \
@@ -293,8 +369,10 @@ versioner track deployment \
   --skip-preflight-checks
 ```
 
+**⚠️ Deprecation Notice:** `--skip-preflight-checks` is deprecated. Use server-side rule status control instead. This flag will be removed in a future version.
+
 **⚠️ Warning:** Only use `--skip-preflight-checks` for:
-- Production incidents requiring immediate fixes
+- Production incidents requiring immediate fixes when UI is unavailable
 - Approved emergency changes
 - When deployment rules are temporarily misconfigured
 

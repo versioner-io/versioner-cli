@@ -75,6 +75,7 @@ func init() {
 	deploymentCmd.Flags().String("deployed-by-name", "", "User display name")
 	deploymentCmd.Flags().String("completed-at", "", "Deployment completion timestamp (ISO 8601 format)")
 	deploymentCmd.Flags().String("extra-metadata", "", "Additional metadata as JSON object (max 100KB)")
+	deploymentCmd.Flags().Bool("fail-on-api-error", true, "Fail command if API is unreachable or returns auth/validation errors (default: true)")
 	deploymentCmd.Flags().Bool("skip-preflight-checks", false, "Skip preflight checks (emergency use only)")
 
 	// Bind flags to viper
@@ -91,6 +92,7 @@ func init() {
 	_ = viper.BindPFlag("deployed_by", deploymentCmd.Flags().Lookup("deployed-by"))
 	_ = viper.BindPFlag("deployed_by_email", deploymentCmd.Flags().Lookup("deployed-by-email"))
 	_ = viper.BindPFlag("deployed_by_name", deploymentCmd.Flags().Lookup("deployed-by-name"))
+	_ = viper.BindPFlag("fail_on_api_error", deploymentCmd.Flags().Lookup("fail-on-api-error"))
 }
 
 func runDeploymentTrack(cmd *cobra.Command, args []string) error {
@@ -146,8 +148,17 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("API key is required. Set VERSIONER_API_KEY environment variable or use --api-key flag")
 	}
 
+	// Get fail-on-api-error flag (default: true)
+	failOnApiError, _ := cmd.Flags().GetBool("fail-on-api-error")
+	if !cmd.Flags().Changed("fail-on-api-error") {
+		failOnApiError = viper.GetBool("fail_on_api_error")
+		if !viper.IsSet("fail_on_api_error") {
+			failOnApiError = true
+		}
+	}
+
 	// Create API client
-	client := api.NewClient(apiURL, apiKey, debug)
+	client := api.NewClient(apiURL, apiKey, debug, failOnApiError)
 
 	// Helper function to get value with fallback (cmd flags -> viper -> auto-detected)
 	getWithFallback := func(flagName string, viperKey string, fallback string) string {
@@ -207,6 +218,12 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 
 	// Get skip-preflight-checks flag
 	skipPreflightChecks, _ := cmd.Flags().GetBool("skip-preflight-checks")
+	if skipPreflightChecks {
+		fmt.Fprintf(os.Stderr, "⚠️  DEPRECATION WARNING: --skip-preflight-checks is deprecated\n")
+		fmt.Fprintf(os.Stderr, "    Use server-side rule status control instead (disabled/report_only/enabled)\n")
+		fmt.Fprintf(os.Stderr, "    Admins can change rule status in the Versioner UI without code changes\n")
+		fmt.Fprintf(os.Stderr, "    This flag will be removed in a future version\n\n")
+	}
 	event.SkipPreflightChecks = skipPreflightChecks
 
 	if verbose {

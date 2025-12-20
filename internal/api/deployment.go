@@ -50,7 +50,7 @@ func (c *Client) CreateDeploymentEvent(event *DeploymentEventCreate) (*Deploymen
 	}
 
 	var result DeploymentResponse
-	if err := handleResponse(resp, &result); err != nil {
+	if err := c.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 

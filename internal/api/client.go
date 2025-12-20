@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/versioner-io/versioner-cli/internal/version"
@@ -13,23 +14,25 @@ import (
 
 // Client represents the Versioner API client
 type Client struct {
-	BaseURL    string
-	APIKey     string
-	HTTPClient *http.Client
-	UserAgent  string
-	Debug      bool
+	BaseURL        string
+	APIKey         string
+	HTTPClient     *http.Client
+	UserAgent      string
+	Debug          bool
+	FailOnAPIError bool
 }
 
 // NewClient creates a new API client
-func NewClient(baseURL, apiKey string, debug bool) *Client {
+func NewClient(baseURL, apiKey string, debug bool, failOnAPIError bool) *Client {
 	return &Client{
 		BaseURL: baseURL,
 		APIKey:  apiKey,
 		HTTPClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		UserAgent: version.GetUserAgent(),
-		Debug:     debug,
+		UserAgent:      version.GetUserAgent(),
+		Debug:          debug,
+		FailOnAPIError: failOnAPIError,
 	}
 }
 
@@ -116,7 +119,7 @@ func (c *Client) performRequest(method, path string, body interface{}) (*http.Re
 }
 
 // handleResponse processes the API response
-func handleResponse(resp *http.Response, result interface{}) error {
+func (c *Client) handleResponse(resp *http.Response, result interface{}) error {
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
@@ -140,10 +143,11 @@ func handleResponse(resp *http.Response, result interface{}) error {
 	}
 	if err := json.Unmarshal(body, &errorResponse); err != nil {
 		// Fallback if error response doesn't match expected format
-		return &APIError{
+		apiError := &APIError{
 			StatusCode: resp.StatusCode,
 			Detail:     string(body),
 		}
+		return c.handleAPIError(apiError, result)
 	}
 
 	apiError := &APIError{
@@ -151,7 +155,50 @@ func handleResponse(resp *http.Response, result interface{}) error {
 		Detail:     errorResponse.Detail,
 	}
 
-	return apiError
+	return c.handleAPIError(apiError, result)
+}
+
+// handleAPIError processes API errors with conditional logic
+func (c *Client) handleAPIError(apiError *APIError, result interface{}) error {
+	// Preflight check rejections (409, 423, 428) always fail
+	// Policy enforcement is controlled server-side via rule status
+	if apiError.IsPreflightError() {
+		return apiError
+	}
+
+	// API errors (401, 403, 404, 422, etc.) respect FailOnAPIError flag
+	if c.FailOnAPIError {
+		return apiError
+	}
+
+	// Log warning and return placeholder response
+	fmt.Fprintf(os.Stderr, "⚠️  API Error (continuing due to --fail-on-api-error=false)\n")
+	fmt.Fprintf(os.Stderr, "    Status: %d\n", apiError.StatusCode)
+	fmt.Fprintf(os.Stderr, "    Error: %s\n", apiError.Error())
+	fmt.Fprintf(os.Stderr, "    ℹ️  Event was not recorded in Versioner\n\n")
+
+	// Return placeholder response based on result type
+	if result != nil {
+		switch v := result.(type) {
+		case *DeploymentResponse:
+			*v = DeploymentResponse{
+				ID:            "",
+				ProductID:     "",
+				VersionID:     "",
+				EnvironmentID: "",
+				Status:        "not_recorded",
+			}
+		case *BuildResponse:
+			*v = BuildResponse{
+				ID:        "",
+				ProductID: "",
+				VersionID: "",
+				Status:    "not_recorded",
+			}
+		}
+	}
+
+	return nil
 }
 
 // APIError represents an error response from the API

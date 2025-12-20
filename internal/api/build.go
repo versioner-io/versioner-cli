@@ -40,7 +40,7 @@ func (c *Client) CreateBuildEvent(event *BuildEventCreate) (*BuildResponse, erro
 	}
 
 	var result BuildResponse
-	if err := handleResponse(resp, &result); err != nil {
+	if err := c.handleResponse(resp, &result); err != nil {
 		return nil, err
 	}
 
