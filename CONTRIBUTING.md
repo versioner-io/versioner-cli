@@ -113,30 +113,30 @@ just run track build --product=test --version=1.0.0
 # Track a build event
 ./bin/versioner track build \
   --api-url https://development-api.versioner.io \
-  --product=test-app \
-  --version=1.0.0 \
-  --status=completed
+  --product test-app \
+  --version 1.0.0 \
+  --status completed
 
 # Track a deployment event
 ./bin/versioner track deployment \
   --api-url https://development-api.versioner.io \
-  --product=test-app \
-  --environment=development \
-  --version=1.0.0 \
-  --status=completed
+  --product test-app \
+  --environment development \
+  --version 1.0.0 \
+  --status completed
 
 # With extra metadata
 ./bin/versioner track build \
   --api-url https://development-api.versioner.io \
-  --product=test-app \
-  --version=1.0.0 \
+  --product test-app \
+  --version 1.0.0 \
   --extra-metadata '{"docker_image": "myorg/app:1.0.0"}'
 
 # With verbose output
 ./bin/versioner track build \
   --api-url https://development-api.versioner.io \
-  --product=test-app \
-  --version=1.0.0 \
+  --product test-app \
+  --version 1.0.0 \
   --verbose
 ```
 

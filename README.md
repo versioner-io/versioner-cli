@@ -81,19 +81,19 @@ sudo mv versioner /usr/local/bin/
 
 ```bash
 versioner track build \
-  --product=api-service \
-  --version=1.2.3 \
-  --status=completed
+  --product api-service \
+  --version 1.2.3 \
+  --status completed
 ```
 
 ### Track a Deployment Event
 
 ```bash
 versioner track deployment \
-  --product=api-service \
-  --environment=production \
-  --version=1.2.3 \
-  --status=success
+  --product api-service \
+  --environment production \
+  --version 1.2.3 \
+  --status success
 ```
 
 ### Configuration
@@ -120,19 +120,19 @@ api_url: https://api.versioner.io
 - name: Track build
   run: |
     versioner track build \
-      --product=api-service \
-      --version=${{ github.sha }} \
-      --status=completed
+      --product api-service \
+      --version ${{ github.sha }} \
+      --status completed
   env:
     VERSIONER_API_KEY: ${{ secrets.VERSIONER_API_KEY }}
 
 - name: Track deployment
   run: |
     versioner track deployment \
-      --product=api-service \
-      --environment=production \
-      --version=${{ github.sha }} \
-      --status=success
+      --product api-service \
+      --environment production \
+      --version ${{ github.sha }} \
+      --status success
   env:
     VERSIONER_API_KEY: ${{ secrets.VERSIONER_API_KEY }}
 ```
@@ -144,13 +144,13 @@ build:
   script:
     - make build
   after_script:
-    - versioner track build --product=api --version=$CI_COMMIT_SHA --status=completed
+    - versioner track build --product api --version $CI_COMMIT_SHA --status completed
 
 deploy:
   script:
     - make deploy
   after_script:
-    - versioner track deployment --product=api --environment=$CI_ENVIRONMENT_NAME --version=$CI_COMMIT_SHA --status=success
+    - versioner track deployment --product api --environment $CI_ENVIRONMENT_NAME --version $CI_COMMIT_SHA --status success
 ```
 
 ### Jenkins
@@ -159,14 +159,14 @@ deploy:
 stage('Build') {
   steps {
     sh 'make build'
-    sh 'versioner track build --product=api --version=${BUILD_NUMBER} --status=completed'
+    sh 'versioner track build --product api --version ${BUILD_NUMBER} --status completed'
   }
 }
 
 stage('Deploy') {
   steps {
     sh 'make deploy'
-    sh 'versioner track deployment --product=api --environment=prod --version=${BUILD_NUMBER} --status=success'
+    sh 'versioner track deployment --product api --environment prod --version ${BUILD_NUMBER} --status success'
   }
 }
 ```
@@ -205,22 +205,22 @@ The CLI provides control over how API connectivity and authentication errors are
 ```bash
 # Every deployment MUST be recorded
 versioner track deployment \
-  --product=api-service \
-  --environment=production \
-  --version=1.2.3 \
-  --status=started \
-  --fail-on-api-error=true  # Default behavior
+  --product api-service \
+  --environment production \
+  --version 1.2.3 \
+  --status started \
+  --fail-on-api-error true  # Default behavior
 ```
 
 **Best-Effort Observability:**
 ```bash
 # Recording is nice-to-have, don't block production deployments
 versioner track deployment \
-  --product=api-service \
-  --environment=production \
-  --version=1.2.3 \
-  --status=started \
-  --fail-on-api-error=false
+  --product api-service \
+  --environment production \
+  --version 1.2.3 \
+  --status started \
+  --fail-on-api-error false
 ```
 
 **API Errors Affected:**
@@ -362,10 +362,10 @@ For immediate bypass when you can't access the UI:
 
 ```bash
 versioner track deployment \
-  --product=api-service \
-  --environment=production \
-  --version=1.2.3-hotfix \
-  --status=started \
+  --product api-service \
+  --environment production \
+  --version 1.2.3-hotfix \
+  --status started \
   --skip-preflight-checks
 ```
 
@@ -383,10 +383,10 @@ Always document why checks were skipped in your deployment logs.
 ```bash
 # 1. Start deployment (triggers preflight checks)
 versioner track deployment \
-  --product=api-service \
-  --environment=production \
-  --version=1.2.3 \
-  --status=started
+  --product api-service \
+  --environment production \
+  --version 1.2.3 \
+  --status started
 
 # 2. If checks pass (exit code 0), proceed with actual deployment
 if [ $? -eq 0 ]; then
@@ -395,10 +395,10 @@ if [ $? -eq 0 ]; then
 
   # 3. Report completion
   versioner track deployment \
-    --product=api-service \
-    --environment=production \
-    --version=1.2.3 \
-    --status=completed
+    --product api-service \
+    --environment production \
+    --version 1.2.3 \
+    --status completed
 fi
 ```
 
@@ -410,10 +410,10 @@ fi
   id: preflight
   run: |
     versioner track deployment \
-      --product=api-service \
-      --environment=production \
-      --version=${{ github.sha }} \
-      --status=started
+      --product api-service \
+      --environment production \
+      --version ${{ github.sha }} \
+      --status started
   env:
     VERSIONER_API_KEY: ${{ secrets.VERSIONER_API_KEY }}
   continue-on-error: true
@@ -428,10 +428,10 @@ fi
   if: steps.preflight.outcome == 'success'
   run: |
     versioner track deployment \
-      --product=api-service \
-      --environment=production \
-      --version=${{ github.sha }} \
-      --status=completed
+      --product api-service \
+      --environment production \
+      --version ${{ github.sha }} \
+      --status completed
   env:
     VERSIONER_API_KEY: ${{ secrets.VERSIONER_API_KEY }}
 ```
@@ -443,19 +443,19 @@ deploy:production:
     # Preflight check
     - |
       versioner track deployment \
-        --product=api \
-        --environment=production \
-        --version=$CI_COMMIT_SHA \
-        --status=started
+        --product api \
+        --environment production \
+        --version $CI_COMMIT_SHA \
+        --status started
     # Deploy if checks pass
     - kubectl apply -f k8s/
     # Report completion
     - |
       versioner track deployment \
-        --product=api \
-        --environment=production \
-        --version=$CI_COMMIT_SHA \
-        --status=completed
+        --product api \
+        --environment production \
+        --version $CI_COMMIT_SHA \
+        --status completed
 ```
 
 ## CI/CD Auto-Detection
@@ -475,10 +475,10 @@ When running in a supported CI/CD system, you can omit many flags:
 
 ```bash
 # In GitHub Actions - auto-detects repository, SHA, build number, etc.
-versioner track build --product=api-service --status=completed
+versioner track build --product api-service --status completed
 
 # In GitLab CI - auto-detects project, SHA, pipeline info
-versioner track deployment --environment=production --status=success
+versioner track deployment --environment production --status success
 ```
 
 Use `--verbose` to see which values were auto-detected:

@@ -19,15 +19,15 @@ var buildCmd = &cobra.Command{
 	Long: `Track a CI/CD build lifecycle event with the Versioner API.
 This command sends build information to track the build process.`,
 	Example: `  # Track a completed build
-  versioner track build --product=api-service --version=1.2.3 --status=completed
+  versioner track build --product api-service --version 1.2.3 --status completed
 
   # Track a build with additional metadata
   versioner track build \
-    --product=api-service \
-    --version=1.2.3 \
-    --status=completed \
-    --scm-sha=abc123 \
-    --build-number=456`,
+    --product api-service \
+    --version 1.2.3 \
+    --status completed \
+    --scm-sha abc123 \
+    --build-number 456`,
 	RunE: runBuildTrack,
 }
 

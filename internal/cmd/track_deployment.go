@@ -32,24 +32,24 @@ Exit codes:
   5 - Preflight check failure (deployment blocked)`,
 	Example: `  # Track a deployment start (triggers preflight checks)
   versioner track deployment \
-    --product=api-service \
-    --environment=production \
-    --version=1.2.3 \
-    --status=started
+    --product api-service \
+    --environment production \
+    --version 1.2.3 \
+    --status started
 
   # Track deployment completion
   versioner track deployment \
-    --product=api-service \
-    --environment=production \
-    --version=1.2.3 \
-    --status=completed
+    --product api-service \
+    --environment production \
+    --version 1.2.3 \
+    --status completed
 
   # Emergency deployment (skip preflight checks)
   versioner track deployment \
-    --product=api-service \
-    --environment=production \
-    --version=1.2.3-hotfix \
-    --status=started \
+    --product api-service \
+    --environment production \
+    --version 1.2.3-hotfix \
+    --status started \
     --skip-preflight-checks`,
 	RunE: runDeploymentTrack,
 }
