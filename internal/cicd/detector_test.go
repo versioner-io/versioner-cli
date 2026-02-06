@@ -170,7 +170,7 @@ func TestDetectRundeck(t *testing.T) {
 		t.Errorf("Expected version 789, got %s", detected.Version)
 	}
 
-	expectedURL := "https://rundeck.example.com/project/production/execution/show/789"
+	expectedURL := "https://rundeck.example.com/execution/show/789"
 	if detected.BuildURL != expectedURL {
 		t.Errorf("Expected build URL %s, got %s", expectedURL, detected.BuildURL)
 	}

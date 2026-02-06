@@ -370,10 +370,9 @@ func detectRundeck(d *DetectedValues) {
 
 	// Build URL to execution
 	serverURL := os.Getenv("RD_JOB_SERVERURL")
-	project := os.Getenv("RD_JOB_PROJECT")
 	execID := os.Getenv("RD_JOB_EXECID")
-	if serverURL != "" && project != "" && execID != "" {
-		d.BuildURL = fmt.Sprintf("%s/project/%s/execution/show/%s", serverURL, project, execID)
+	if serverURL != "" && execID != "" {
+		d.BuildURL = fmt.Sprintf("%s/execution/show/%s", serverURL, execID)
 	}
 
 	// Use job name as product fallback
