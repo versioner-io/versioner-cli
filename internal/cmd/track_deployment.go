@@ -123,7 +123,12 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 
 	statusValue, _ := cmd.Flags().GetString("status")
 
-	// Normalize and validate status
+	// Validate status value
+	if !status.IsValid(statusValue) {
+		return fmt.Errorf("invalid status '%s'. Valid values: pending, started, completed, failed, aborted (or aliases like success, in_progress, cancelled)", statusValue)
+	}
+
+	// Normalize status
 	canonicalStatus, wasNormalized := status.Normalize(statusValue)
 	if verbose && wasNormalized {
 		fmt.Fprintf(os.Stderr, "ℹ Status '%s' will be normalized to '%s' by the API\n", statusValue, canonicalStatus)
