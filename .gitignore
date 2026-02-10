@@ -31,3 +31,6 @@ Thumbs.db
 .versioner-cli.yaml
 config.yaml
 .windsurfrules
+
+# Claude Code
+.claude/
