@@ -176,6 +176,44 @@ func TestDetectRundeck(t *testing.T) {
 	}
 }
 
+func TestDetectRundeckWithTrailingSlash(t *testing.T) {
+	// Save and clear environment
+	originalEnv := make(map[string]string)
+	envVars := []string{
+		"RD_JOB_ID", "RD_JOB_EXECID", "RD_JOB_SERVERURL",
+		"GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL",
+	}
+	for _, key := range envVars {
+		originalEnv[key] = os.Getenv(key)
+		os.Unsetenv(key)
+	}
+	defer func() {
+		for key, val := range originalEnv {
+			if val != "" {
+				os.Setenv(key, val)
+			} else {
+				os.Unsetenv(key)
+			}
+		}
+	}()
+
+	// Set Rundeck environment with trailing slash in server URL
+	os.Setenv("RD_JOB_ID", "abc-123")
+	os.Setenv("RD_JOB_EXECID", "1359")
+	os.Setenv("RD_JOB_SERVERURL", "https://rundecksupernew.meprod.net/")
+
+	detected := Detect()
+
+	if detected.System != SystemRundeck {
+		t.Errorf("Expected system %s, got %s", SystemRundeck, detected.System)
+	}
+
+	expectedURL := "https://rundecksupernew.meprod.net/execution/show/1359"
+	if detected.BuildURL != expectedURL {
+		t.Errorf("Expected build URL %s, got %s (should not have double slash)", expectedURL, detected.BuildURL)
+	}
+}
+
 func TestDetectUnknown(t *testing.T) {
 	// Clear all CI environment variables
 	ciEnvVars := []string{
