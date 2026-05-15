@@ -55,7 +55,7 @@ func WriteSuccessSummary(action, environment, status, version, scmSha, uiURL, re
 		if action == "Deployment" {
 			viewURL = fmt.Sprintf("%s/manage/deployments?view=%s", uiURL, resourceID)
 		} else if action == "Build" {
-			viewURL = fmt.Sprintf("%s/manage/versions?view=%s", uiURL, resourceID)
+			viewURL = fmt.Sprintf("%s/manage/catalog?tab=versions&view=%s", uiURL, resourceID)
 		}
 		if viewURL != "" {
 			summary += fmt.Sprintf("\n[View in Versioner →](%s)\n", viewURL)
