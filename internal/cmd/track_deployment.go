@@ -287,7 +287,8 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 
 	// Write GitHub Actions job summary
 	uiURL := viper.GetString("ui_url")
-	github.WriteSuccessSummary("Deployment", environment, statusValue, version, event.SCMSha, uiURL, resp.ID)
+	summaryWarnings := extractReportOnlyWarnings(resp)
+	github.WriteSuccessSummary("Deployment", environment, statusValue, version, event.SCMSha, uiURL, resp.ID, summaryWarnings)
 
 	return nil
 }
@@ -438,4 +439,60 @@ func printReportOnlyWarnings(resp *api.DeploymentResponse) {
 	for _, w := range warnings {
 		fmt.Printf("  • %s\n", w)
 	}
+}
+
+// extractReportOnlyWarnings returns a slice of formatted warning strings for
+// report-only rule failures in the API response. It mirrors the logic in
+// printReportOnlyWarnings but returns the slice instead of printing it.
+func extractReportOnlyWarnings(resp *api.DeploymentResponse) []string {
+	if resp.ExtraMetadata == nil {
+		return nil
+	}
+
+	preflightRaw, ok := resp.ExtraMetadata["preflight_status"]
+	if !ok {
+		return nil
+	}
+	preflight, ok := preflightRaw.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	rulesRaw, ok := preflight["rules_evaluated"]
+	if !ok {
+		return nil
+	}
+	rules, ok := rulesRaw.([]interface{})
+	if !ok {
+		return nil
+	}
+
+	var warnings []string
+	for _, ruleRaw := range rules {
+		rule, ok := ruleRaw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		ruleStatus, _ := rule["status"].(string)
+		evalResult, _ := rule["evaluation_result"].(string)
+		if ruleStatus != "report_only" || evalResult != "failed" {
+			continue
+		}
+		ruleName, _ := rule["rule_name"].(string)
+		errorMessage, _ := rule["error_message"].(string)
+		label := ruleName
+		if errorMessage != "" {
+			if label != "" {
+				label = label + ": " + errorMessage
+			} else {
+				label = errorMessage
+			}
+		}
+		if label == "" {
+			label = "(unknown rule)"
+		}
+		warnings = append(warnings, label)
+	}
+
+	return warnings
 }

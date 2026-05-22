@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/versioner-io/versioner-cli/internal/version"
 )
 
 // WriteErrorAnnotation writes a GitHub Actions error annotation and job summary
@@ -22,7 +24,7 @@ func WriteErrorAnnotation(statusCode int, errorCode, message, ruleName string, r
 }
 
 // WriteSuccessSummary writes a GitHub Actions job summary for successful deployment tracking
-func WriteSuccessSummary(action, environment, status, version, scmSha, uiURL, resourceID string) {
+func WriteSuccessSummary(action, environment, status, ver, scmSha, uiURL, resourceID string, warnings []string) {
 	// Only write summaries if running in GitHub Actions
 	if os.Getenv("GITHUB_ACTIONS") != "true" {
 		return
@@ -43,7 +45,7 @@ func WriteSuccessSummary(action, environment, status, version, scmSha, uiURL, re
 		summary += fmt.Sprintf("- **Environment:** %s\n", environment)
 	}
 	summary += fmt.Sprintf("- **Status:** %s\n", formatStatus(status))
-	summary += fmt.Sprintf("- **Version:** `%s`\n", version)
+	summary += fmt.Sprintf("- **Version:** `%s`\n", ver)
 
 	if scmSha != "" {
 		summary += fmt.Sprintf("- **Git SHA:** `%s`\n", scmSha)
@@ -61,6 +63,17 @@ func WriteSuccessSummary(action, environment, status, version, scmSha, uiURL, re
 			summary += fmt.Sprintf("\n[View in Versioner →](%s)\n", viewURL)
 		}
 	}
+
+	// Add report-only warning section if any warnings exist
+	if len(warnings) > 0 {
+		summary += "\n⚠️ **Report-only warnings:**\n"
+		for _, w := range warnings {
+			summary += fmt.Sprintf("- %s\n", w)
+		}
+	}
+
+	// Add version footer
+	summary += fmt.Sprintf("\n---\n_versioner-cli v%s (%s)_\n", version.Version, version.Commit)
 
 	// Write to file
 	f, err := os.OpenFile(summaryPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
