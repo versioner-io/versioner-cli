@@ -9,10 +9,9 @@ Versioner CLI - a Go command-line tool for tracking build and deployment events 
 ## Cross-Repo Context
 
 This repo is part of the Versioner ecosystem. Before starting work:
-- Use the `/kanban-markdown` skill or read `../.devtool/features/` for current status and priorities
 - Read relevant feature docs from `../docs/specs/`
 - Read relevant architecture docs from `../docs/architecture/`
-- Update feature file status in `../.devtool/features/` as you complete tasks, add entries to `../changelog.md`
+- Add entries to `../changelog.md` as you complete tasks
 
 ## Build & Test Commands
 
