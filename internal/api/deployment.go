@@ -24,12 +24,13 @@ type DeploymentEventCreate struct {
 
 // DeploymentResponse represents the response from creating a deployment event
 type DeploymentResponse struct {
-	ID            string     `json:"id"`
-	ProductID     string     `json:"product_id"`
-	VersionID     string     `json:"version_id"`
-	EnvironmentID string     `json:"environment_id"`
-	Status        string     `json:"status"`
-	DeployedAt    *time.Time `json:"deployed_at,omitempty"`
+	ID            string                 `json:"id"`
+	ProductID     string                 `json:"product_id"`
+	VersionID     string                 `json:"version_id"`
+	EnvironmentID string                 `json:"environment_id"`
+	Status        string                 `json:"status"`
+	DeployedAt    *time.Time             `json:"deployed_at,omitempty"`
+	ExtraMetadata map[string]interface{} `json:"extra_metadata,omitempty"`
 }
 
 // PreflightError represents a preflight check failure with detailed information

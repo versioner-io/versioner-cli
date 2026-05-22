@@ -282,6 +282,9 @@ func runDeploymentTrack(cmd *cobra.Command, args []string) error {
 		fmt.Printf("  Environment ID: %s\n", resp.EnvironmentID)
 	}
 
+	// Print report-only rule warnings if present
+	printReportOnlyWarnings(resp)
+
 	// Write GitHub Actions job summary
 	uiURL := viper.GetString("ui_url")
 	github.WriteSuccessSummary("Deployment", environment, statusValue, version, event.SCMSha, uiURL, resp.ID)
@@ -375,5 +378,64 @@ func handlePreflightError(apiErr *api.APIError) {
 		if err == nil {
 			fmt.Fprintf(os.Stderr, "  %s\n", string(detailsJSON))
 		}
+	}
+}
+
+// printReportOnlyWarnings inspects the API response and prints any report-only
+// rule failures as warnings. Report-only rules never block a deployment, but
+// surface violations the team should be aware of.
+func printReportOnlyWarnings(resp *api.DeploymentResponse) {
+	if resp.ExtraMetadata == nil {
+		return
+	}
+
+	preflightRaw, ok := resp.ExtraMetadata["preflight_status"]
+	if !ok {
+		return
+	}
+	preflight, ok := preflightRaw.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	rulesRaw, ok := preflight["rules_evaluated"]
+	if !ok {
+		return
+	}
+	rules, ok := rulesRaw.([]interface{})
+	if !ok {
+		return
+	}
+
+	var warnings []string
+	for _, ruleRaw := range rules {
+		rule, ok := ruleRaw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		ruleStatus, _ := rule["status"].(string)
+		evalResult, _ := rule["evaluation_result"].(string)
+		if ruleStatus != "report_only" || evalResult != "failed" {
+			continue
+		}
+		ruleName, _ := rule["rule_name"].(string)
+		errorMessage, _ := rule["error_message"].(string)
+		label := ruleName
+		if errorMessage != "" {
+			label = errorMessage
+		}
+		if label == "" {
+			label = "(unknown rule)"
+		}
+		warnings = append(warnings, label)
+	}
+
+	if len(warnings) == 0 {
+		return
+	}
+
+	fmt.Printf("⚠ Report-only warnings:\n")
+	for _, w := range warnings {
+		fmt.Printf("  • %s\n", w)
 	}
 }
