@@ -52,6 +52,21 @@ just ci                 # fmt -> tests -> lint -> build
 Order: `--config` flag → `$HOME/.versioner/config.yaml` → `./config.yaml`.  
 Env prefix: `VERSIONER_` (e.g. `VERSIONER_API_KEY`).
 
+## Pre-commit / pre-PR gate (required)
+
+Mirrors GitHub Actions `test.yml` on PRs to `main`/`develop`: **test** (`go test -race`), **lint** (golangci-lint), **matrix build**.
+
+| When | Command | Notes |
+|------|---------|--------|
+| **Final handoff (required)** | `just ci` | `fmt` → `run_tests` → `lint` → `build` |
+| Closest to CI tests | `go test -v -race ./...` | CI adds `-race`; `just run_tests` is plain `go test -v` |
+| Lint only | `just lint` | CI runs golangci-lint-action |
+
+**Rules for agents**
+1. Run **`just ci`** before commit/push (or at least tests + lint + build if `ci` skips lint when golangci-lint missing — install linter rather than skip).
+2. Prefer `go test -v -race ./...` once before handoff if `just ci` does not pass `-race`.
+3. Note commands + results on the card/PR.
+
 ## Local conventions
 
 - Follow existing patterns
